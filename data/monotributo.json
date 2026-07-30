@@ -1,0 +1,20 @@
+{
+  "year": 2026,
+  "categories": [
+    { "code": "A", "maxIncome": 1828653, "maxArea": 30, "maxEnergy": 3330, "maxRent": 550000, "monthlyFee": 3701, "retirement": 3701, "obraSocial": 1480 },
+    { "code": "B", "maxIncome": 2717729, "maxArea": 45, "maxEnergy": 5000, "maxRent": 825000, "monthlyFee": 4108, "retirement": 4108, "obraSocial": 1643 },
+    { "code": "C", "maxIncome": 3804820, "maxArea": 60, "maxEnergy": 6700, "maxRent": 1100000, "monthlyFee": 4628, "retirement": 4628, "obraSocial": 1851 },
+    { "code": "D", "maxIncome": 4724283, "maxArea": 80, "maxEnergy": 10000, "maxRent": 1375000, "monthlyFee": 5170, "retirement": 5170, "obraSocial": 2068 },
+    { "code": "E", "maxIncome": 5560189, "maxArea": 110, "maxEnergy": 13000, "maxRent": 1650000, "monthlyFee": 5728, "retirement": 5728, "obraSocial": 2291 },
+    { "code": "F", "maxIncome": 6959069, "maxArea": 150, "maxEnergy": 16500, "maxRent": 1925000, "monthlyFee": 6312, "retirement": 6312, "obraSocial": 2525 },
+    { "code": "G", "maxIncome": 8347663, "maxArea": 200, "maxEnergy": 20000, "maxRent": 2200000, "monthlyFee": 6916, "retirement": 6916, "obraSocial": 2766 },
+    { "code": "H", "maxIncome": 10418859, "maxArea": 200, "maxEnergy": 20000, "maxRent": 2200000, "monthlyFee": 7664, "retirement": 7664, "obraSocial": 3066 },
+    { "code": "I", "maxIncome": 11647719, "maxArea": 200, "maxEnergy": 20000, "maxRent": 2200000, "monthlyFee": 8467, "retirement": 8467, "obraSocial": 3387 },
+    { "code": "J", "maxIncome": 13485067, "maxArea": 200, "maxEnergy": 20000, "maxRent": 2200000, "monthlyFee": 9336, "retirement": 9336, "obraSocial": 3734 },
+    { "code": "K", "maxIncome": 16184580, "maxArea": 200, "maxEnergy": 20000, "maxRent": 2200000, "monthlyFee": 10274, "retirement": 10274, "obraSocial": 4110 }
+  ],
+  "deductions": {
+    "dependents": 246580,
+    "spouse": 467560
+  }
+}

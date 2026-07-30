@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFIP Assistant — Monotributo, Dólar, Inflación, Gastos</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--surface:#1e293b;--text:#e2e8f0;--text2:#94a3b8;--border:#334155;--primary:#3b82f6;--primary-hover:#2563eb;--success:#22c55e;--danger:#ef4444;--accent:#f59e0b;--premium:linear-gradient(135deg,#f59e0b,#eab308);--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.3)}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:16px}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 0;position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:0 16px}
+.logo{font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:8px;cursor:pointer}
+.logo span{color:var(--primary)}
+#tierBadge{font-size:.65rem;padding:3px 10px;border-radius:20px;font-weight:700;cursor:pointer;transition:.2s}
+.tier-free{background:#334155;color:#94a3b8}
+.tier-pro{background:var(--primary);color:#fff}
+.tier-premium{background:var(--premium);color:#000}
+.nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{cursor:pointer;padding:5px 10px;border-radius:16px;font-size:.75rem;font-weight:500;white-space:nowrap;color:var(--text2);text-decoration:none;transition:.2s;flex-shrink:0}
+.nav a:hover,.nav a.active{background:var(--primary);color:#fff}
+@media(max-width:768px){.nav a{font-size:.7rem;padding:4px 8px}}
+.section{display:none}
+.section.active{display:block}
+.card{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-size:1rem;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:6px}
+.card h3{font-size:.9rem;color:var(--text2);margin-bottom:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.form-group .hint{font-size:.7rem;color:var(--text2);font-weight:400;margin-left:4px}
+.form-group input,.form-group select,.form-group textarea{padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:.9rem;background:var(--bg);color:var(--text);outline:none;width:100%;transition:.2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary)}
+.form-row{display:flex;gap:8px;flex-wrap:wrap}
+.form-row .form-group{flex:1;min-width:110px}
+.btn{padding:8px 20px;border-radius:20px;font-size:.85rem;font-weight:600;border:none;cursor:pointer;transition:.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-sm{padding:5px 14px;font-size:.75rem}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-outline{background:transparent;border:2px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-premium{background:var(--premium);color:#000;font-weight:700}
+.btn-premium:hover{opacity:.9}
+.btn-ghost{background:transparent;color:var(--text2);padding:4px 10px}
+.btn-ghost:hover{color:var(--text)}
+.w-full{width:100%}
+.mt-2{margin-top:8px}
+.mb-2{margin-bottom:8px}
+.result-box{background:var(--bg);border-radius:8px;padding:16px;margin-top:12px;display:none}
+.result-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.result-row:last-child{border:none}
+.result-row .label{color:var(--text2)}
+.result-row .value{font-weight:600}
+.result-row .highlight{color:var(--accent);font-size:1.1rem}
+.result-row .up{color:var(--success)}
+.result-row .down{color:var(--danger)}
+.exchange-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.exchange-card{background:var(--bg);padding:10px;border-radius:8px;text-align:center;transition:.2s}
+.exchange-card:hover{background:var(--surface);border:1px solid var(--border)}
+.exchange-card .type{font-size:.65rem;text-transform:uppercase;color:var(--text2);font-weight:600}
+.exchange-card .price{font-size:1rem;font-weight:700;margin:4px 0}
+.exchange-card .price.buy{color:var(--success)}
+.exchange-card .price.sell{color:var(--danger)}
+.exchange-card .price.blue{color:var(--accent)}
+.chart-wrap{height:200px;margin:12px 0}
+@media(max-width:768px){.chart-wrap{height:160px}}
+.expense-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.expense-item:last-child{border:none}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface);border-radius:30px;padding:3px;width:fit-content;overflow-x:auto}
+.tab{padding:6px 14px;border-radius:30px;cursor:pointer;font-size:.78rem;font-weight:500;border:none;background:transparent;color:var(--text2);transition:.2s;white-space:nowrap}
+.tab.active{background:var(--primary);color:#fff}
+.stat-value{font-size:1.8rem;font-weight:800;margin:4px 0}
+.stat-label{font-size:.75rem;color:var(--text2);display:flex;align-items:center;gap:4px}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center}
+.loading{text-align:center;padding:40px;color:var(--text2)}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:40px;color:var(--text2)}
+.empty-state .icon{font-size:2rem;margin-bottom:8px}
+.error-msg{color:var(--danger);font-size:.8rem;display:none}
+.success-msg{color:var(--success);font-size:.8rem}
+.premium-badge{background:var(--premium);color:#000;border-radius:20px;padding:2px 10px;font-size:.65rem;font-weight:700;display:inline-block}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border-radius:var(--radius);padding:12px 20px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:999;border:1px solid var(--border);font-size:.85rem;max-width:360px;display:none;animation:fadeIn .3s}
+.toast.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--border);color:var(--text2);font-size:.6rem;font-weight:700;cursor:help;position:relative;flex-shrink:0}
+.tooltip-icon:hover .tooltip-text{display:block}
+.tooltip-text{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);font-size:.7rem;padding:6px 10px;border-radius:6px;white-space:normal;width:220px;z-index:50;font-weight:400;line-height:1.3;text-align:left;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.tooltip-text::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--text)}
+.faq-item{border-bottom:1px solid var(--border);padding:12px 0}
+.faq-item:last-child{border:none}
+.faq-q{font-weight:600;font-size:.85rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.faq-q:hover{color:var(--primary)}
+.faq-a{font-size:.8rem;color:var(--text2);margin-top:6px;line-height:1.5;display:none}
+.faq-a.open{display:block}
+.guide-card{background:var(--bg);border-radius:8px;padding:14px;margin-bottom:8px}
+.guide-card .step-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:.7rem;font-weight:700;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0}
+.guide-card p{font-size:.82rem;line-height:1.5;color:var(--text2)}
+.guide-card strong{color:var(--text)}
+.plan-card{background:var(--surface);border-radius:var(--radius);padding:20px;text-align:center;border:2px solid var(--border);transition:.2s}
+.plan-card:hover{border-color:var(--primary)}
+.plan-card.recomendado{border-color:var(--accent);position:relative}
+.plan-card.recomendado::before{content:'RECOMENDADO';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-size:.65rem;font-weight:700;padding:2px 12px;border-radius:10px}
+.plan-card .price{font-size:2rem;font-weight:800;margin:8px 0}
+.plan-card .features{font-size:.8rem;color:var(--text2);margin:12px 0;line-height:2}
+.plan-card .features .check{color:var(--success)}
+.plan-card .features .x{color:var(--danger)}
+#auth-section{display:flex;align-items:center;justify-content:center;min-height:80vh}
+.auth-box{background:var(--surface);border-radius:var(--radius);padding:32px;width:100%;max-width:400px;box-shadow:var(--shadow)}
+.auth-box h2{text-align:center;margin-bottom:8px}
+.auth-box .sub{text-align:center;color:var(--text2);font-size:.85rem;margin-bottom:20px}
+.auth-switch{text-align:center;margin-top:16px;font-size:.85rem;color:var(--text2)}
+.auth-switch a{cursor:pointer;color:var(--primary)}
+</style>
+</head>
+<body>
+
+<header id="appHeader" style="display:none">
+  <div class="header-inner">
+    <div class="logo" onclick="switchTab('dashboard')">🏛️ <span>AFIP</span> Assistant <span id="tierBadge" class="tier-free" onclick="switchTab('planes')">FREE</span></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="userEmail" style="font-size:.75rem;color:var(--text2)"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div class="header-inner" style="padding-top:4px">
+    <div class="nav" id="mainNav">
+      <a class="active" data-tab="dashboard">Inicio</a>
+      <a data-tab="monotributo">🏷️ Monotributo</a>
+      <a data-tab="dolar">💵 Dólar</a>
+      <a data-tab="gastos">💰 Gastos</a>
+      <a data-tab="herramientas">🔧 Herramientas</a>
+      <a data-tab="sueldos">💼 Sueldos</a>
+      <a data-tab="alertas">🔔 Alertas</a>
+      <a data-tab="planes" style="color:var(--accent)">⭐ Premium</a>
+      <a data-tab="ayuda">❓ Ayuda</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== AUTH ===== -->
+<section id="auth-section">
+  <div class="auth-box" id="authBox">
+    <div id="authContent"></div>
+  </div>
+</section>
+
+<!-- ===== DASHBOARD ===== -->
+<section id="section-dashboard" class="section">
+  <h2 style="font-size:1.1rem;margin-bottom:12px">📊 Panel Principal</h2>
+  <div class="grid-4" id="dashResumen">
+    <div class="stat-card"><div class="stat-label">💵 Dólar Blue</div><div class="stat-value" id="dashBlue">---</div></div>
+    <div class="stat-card"><div class="stat-label">💰 Gastos del Mes</div><div class="stat-value" id="dashGastos">$0</div></div>
+    <div class="stat-card"><div class="stat-label">📅 Próximo Vencimiento</div><div class="stat-value" id="dashVencimiento" style="font-size:1rem">---</div></div>
+    <div class="stat-card"><div class="stat-label">🔔 Alertas Activas</div><div class="stat-value" id="dashAlertas">0</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><h2>📈 Cotizaciones Hoy</h2><div class="exchange-grid" id="dashCotizaciones"></div></div>
+    <div class="card">
+      <h2>🔧 Acceso rápido</h2>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-primary w-full" onclick="switchTab('monotributo')">🏷️ Calcular mi categoría de Monotributo</button>
+        <button class="btn btn-outline w-full" onclick="switchTab('herramientas')">🔄 Calcular inflación / convertir monedas</button>
+        <button class="btn btn-outline w-full" onclick="switchTab('sueldos')">💰 Calcular sueldo neto</button>
+        <button class="btn btn-outline w-full" onclick="switchTab('gastos')">📊 Registrar un gasto</button>
+        <button class="btn btn-premium w-full" onclick="switchTab('planes')">⭐ Ver planes Premium</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MONOTRIBUTO ===== -->
+<section id="section-monotributo" class="section">
+  <div class="tabs" id="monoTabs">
+    <button class="tab active" data-tab="calcular">🧮 Calcular Categoría</button>
+    <button class="tab" data-tab="tabla">📋 Tabla 2026</button>
+    <button class="tab" data-tab="recategorizar">🔄 Recategorización</button>
+    <button class="tab" data-tab="vencimientos">📅 Vencimientos</button>
+  </div>
+  <div id="mono-calcular" class="mono-section">
+    <div class="card">
+      <h2>🧮 ¿Qué categoría de Monotributo te corresponde?</h2>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Completá tus datos estimados y te decimos en qué categoría encuadrás, cuánto pagarías por mes, y si podés excluirte.</p>
+      <div class="form-row">
+        <div class="form-group"><label>💰 Ingresos brutos anuales</label><input id="monoIngresos" type="number" placeholder="Ej: 1800000"></div>
+        <div class="form-group"><label>📐 Superficie (m²)</label><input id="monoSuperficie" type="number" placeholder="Opcional"></div>
+        <div class="form-group"><label>⚡ Energía anual (kWh)</label><input id="monoEnergia" type="number" placeholder="Opcional"></div>
+        <div class="form-group"><label>🏠 Alquiler mensual ($)</label><input id="monoAlquiler" type="number" placeholder="Opcional"></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcularMonotributo()">Calcular mi categoría</button>
+      <div id="monoResultado" class="result-box"></div>
+    </div>
+  </div>
+  <div id="mono-tabla" class="mono-section" style="display:none">
+    <div class="card"><h2>📋 Tabla de categorías de Monotributo 2026</h2><div id="tablaCategorias"></div></div>
+  </div>
+  <div id="mono-recategorizar" class="mono-section" style="display:none">
+    <div class="card">
+      <h2>🔄 Simulador de Recategorización</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Categoría actual</label><select id="recatActual"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option><option value="K">K</option></select></div>
+        <div class="form-group"><label>📈 Ingresos últimos 12 meses ($)</label><input id="recatIngresos" type="number" placeholder="Ej: 2500000"></div>
+      </div>
+      <button class="btn btn-primary" onclick="recategorizar()">Simular recategorización</button>
+      <div id="recatResultado" class="result-box"></div>
+    </div>
+  </div>
+  <div id="mono-vencimientos" class="mono-section" style="display:none">
+    <div class="card"><h2>📅 Calendario de Vencimientos Impositivos</h2><div id="vencimientosList"></div></div>
+  </div>
+</section>
+
+<!-- ===== DÓLAR ===== -->
+<section id="section-dolar" class="section">
+  <div class="card">
+    <h2>💵 Cotizaciones del dólar en Argentina</h2>
+    <div class="exchange-grid" id="cotizacionesGrid"></div>
+    <div class="chart-wrap"><canvas id="dolarChart"></canvas></div>
+    <p style="font-size:.75rem;color:var(--text2);text-align:right" id="dolarTimestamp"></p>
+  </div>
+  <div class="card">
+    <h2>💱 Conversor rápido</h2>
+    <div class="form-row">
+      <div class="form-group"><label>Monto</label><input id="convMonto" type="number" value="1000" oninput="convertirMoneda()" step="any"></div>
+      <div class="form-group"><label>De</label><select id="convDesde" onchange="convertirMoneda()"><option value="USD">USD</option><option value="ARS">ARS</option></select></div>
+      <div class="form-group"><label>A</label><select id="convHasta" onchange="convertirMoneda()"><option value="ARS">ARS</option><option value="USD">USD</option></select></div>
+      <div class="form-group"><label>Tipo</label><select id="convTipo" onchange="convertirMoneda()"><option value="blue">Blue</option><option value="oficial">Oficial</option><option value="tarjeta">Tarjeta</option></select></div>
+    </div>
+    <div id="convResultado" style="text-align:center;padding:16px;font-size:1.5rem;font-weight:700;color:var(--success)">---</div>
+  </div>
+</section>
+
+<!-- ===== GASTOS ===== -->
+<section id="section-gastos" class="section">
+  <div class="grid-2">
+    <div class="card">
+      <h2>➕ Registrar nuevo gasto <span id="gastoLimit" style="font-size:.75rem;color:var(--text2);font-weight:400"></span></h2>
+      <div class="form-row">
+        <div class="form-group"><label>💰 Monto</label><input id="gastoMonto" type="number" placeholder="Ej: 5000" step="any"></div>
+        <div class="form-group"><label>💱 Moneda</label><select id="gastoMoneda"><option value="ARS">ARS 🇦🇷</option><option value="USD">USD 🇺🇸</option></select></div>
+      </div>
+      <div class="form-group"><label>📂 Categoría</label><select id="gastoCategoria"><option value="alimentos">🍞 Alimentos</option><option value="transporte">🚌 Transporte</option><option value="vivienda">🏠 Vivienda</option><option value="servicios">💡 Servicios</option><option value="salud">🏥 Salud</option><option value="educacion">📚 Educación</option><option value="entretenimiento">🎮 Entretenimiento</option><option value="indumentaria">👕 Indumentaria</option><option value="otros">📦 Otros</option></select></div>
+      <div class="form-group"><label>📝 Descripción</label><input id="gastoDesc" placeholder="Ej: Supermercado Coto"></div>
+      <button class="btn btn-primary w-full" onclick="addGasto()">➕ Registrar gasto</button>
+      <div id="gastoError" class="error-msg" style="margin-top:8px"></div>
+    </div>
+    <div class="card"><h2>📊 Resumen del mes <span id="gastoMes" style="font-size:.75rem;color:var(--text2);font-weight:400"></span></h2><div id="gastoResumen"></div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <h2 style="margin:0">📋 Movimientos recientes</h2>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-outline btn-sm" onclick="loadGastos()">🔄 Actualizar</button>
+        <button class="btn btn-outline btn-sm" id="exportCsvBtn" onclick="exportCSV()">📥 Exportar <span class="premium-badge" style="margin-left:2px">PRO</span></button>
+      </div>
+    </div>
+    <div id="gastosList"></div>
+  </div>
+</section>
+
+<!-- ===== HERRAMIENTAS ===== -->
+<section id="section-herramientas" class="section">
+  <div class="grid-2">
+    <div class="card">
+      <h2>📈 Calculadora de Inflación</h2>
+      <div class="form-row">
+        <div class="form-group"><label>💰 Monto original ($)</label><input id="infMonto" type="number" value="100000" step="any"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>📅 Desde</label><select id="infMesDesde"></select></div>
+        <div class="form-group"><label style="visibility:hidden">.</label><select id="infAnioDesde"><option>2020</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option><option selected>2025</option><option>2026</option></select></div>
+        <div class="form-group"><label>📅 Hasta</label><select id="infMesHasta"></select></div>
+        <div class="form-group"><label style="visibility:hidden">.</label><select id="infAnioHasta"><option>2020</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option><option selected>2026</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcularInflacion()">Calcular</button>
+      <div id="infResultado" class="result-box"></div>
+    </div>
+    <div class="card">
+      <h2>🏦 Calculadora de Préstamos</h2>
+      <div class="form-row">
+        <div class="form-group"><label>💰 Monto</label><input id="prestMonto" type="number" value="500000" step="any"></div>
+        <div class="form-group"><label>📆 Cuotas</label><input id="prestCuotas" type="number" value="12"></div>
+        <div class="form-group"><label>📈 TNA (%)</label><input id="prestTasa" type="number" value="85" step="any"></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcularPrestamo()">Simular préstamo</button>
+      <div id="prestResultado" class="result-box"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SUELDOS ===== -->
+<section id="section-sueldos" class="section">
+  <div class="grid-2">
+    <div class="card">
+      <h2>💰 Calculadora de Sueldo Neto</h2>
+      <div class="form-group"><label>💼 Sueldo bruto mensual ($)</label><input id="sueldoBruto" type="number" placeholder="Ej: 500000" step="any"></div>
+      <button class="btn btn-primary w-full" onclick="calcularSueldo()">Calcular sueldo neto</button>
+      <div id="sueldoResultado" class="result-box"></div>
+    </div>
+    <div class="card">
+      <h2>📋 Detalle de descuentos</h2>
+      <div id="sueldoDesglose"><p style="font-size:.85rem;color:var(--text2)">Completá el sueldo bruto y presioná "Calcular" para ver el detalle.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ALERTAS ===== -->
+<section id="section-alertas" class="section">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <h2 style="margin:0">🔔 Alertas inteligentes <span class="premium-badge" style="margin-left:4px">PRO</span></h2>
+      <button class="btn btn-premium btn-sm" id="checkAlertsBtn" onclick="checkAlerts()">🔄 Verificar ahora</button>
+    </div>
+    <div id="alertasList"></div>
+  </div>
+</section>
+
+<!-- ===== PLANES ===== -->
+<section id="section-planes" class="section">
+  <div style="text-align:center;margin-bottom:24px">
+    <h2 style="font-size:1.5rem;margin-bottom:8px">⭐ Elegí tu plan</h2>
+    <p style="color:var(--text2);font-size:.9rem">Todas las herramientas financieras que necesitás para Argentina.</p>
+  </div>
+  <div class="grid-3" id="planesGrid"></div>
+  <div class="card" id="paymentStatus" style="display:none;text-align:center"></div>
+</section>
+
+<!-- ===== AYUDA ===== -->
+<section id="section-ayuda" class="section">
+  <div class="card"><h2>❓ Preguntas Frecuentes</h2><div id="faqContent"></div></div>
+  <div class="card">
+    <h2>📖 Guías de uso</h2>
+    <div class="tabs" id="guiasTabs">
+      <button class="tab active" data-guia="monotributo">Monotributo</button>
+      <button class="tab" data-guia="dolares">Dólares</button>
+      <button class="tab" data-guia="gastos">Gastos</button>
+    </div>
+    <div id="guiasContent"></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+// ===== AUTH STATE =====
+let token = localStorage.getItem('afip_token');
+let user = null;
+let userTier = 'free';
+let userTierData = {};
+let dolarChartInstance = null;
+let cotizacionesCache = null;
+
+// ===== HELPERS =====
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 4000); }
+function formatPrice(n) { return Number(n).toLocaleString('es-AR', {minimumFractionDigits:0,maximumFractionDigits:0}) }
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1'); }
+function $(id) { return document.getElementById(id); }
+function apiHeaders() { const h = {'Content-Type':'application/json'}; if (token) h['Authorization'] = 'Bearer ' + token; return h; }
+
+// ===== AUTH =====
+function showAuth() {
+  $('auth-section').style.display = 'flex';
+  $('appHeader').style.display = 'none';
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  renderLogin();
+}
+function hideAuth() {
+  $('auth-section').style.display = 'none';
+  $('appHeader').style.display = 'block';
+}
+function renderLogin() {
+  $('authContent').innerHTML = `
+    <h2>🏛️ AFIP Assistant</h2>
+    <p class="sub">Tu asistente financiero personal para Argentina</p>
+    <div class="form-group"><label>Email</label><input id="loginEmail" type="email" placeholder="tu@email.com"></div>
+    <div class="form-group"><label>Contraseña</label><input id="loginPass" type="password" placeholder="••••••"></div>
+    <button class="btn btn-primary w-full" onclick="login()">Iniciar sesión</button>
+    <div id="authError" style="color:var(--danger);font-size:.8rem;margin-top:8px;display:none"></div>
+    <div class="auth-switch">¿No tenés cuenta? <a onclick="renderRegister()">Registrate gratis</a></div>
+  `;
+}
+function renderRegister() {
+  $('authContent').innerHTML = `
+    <h2>🏛️ Crear cuenta</h2>
+    <p class="sub">Gratis. Sin compromiso. Empezá en segundos.</p>
+    <div class="form-group"><label>Nombre</label><input id="regName" type="text" placeholder="Tu nombre"></div>
+    <div class="form-group"><label>Email</label><input id="regEmail" type="email" placeholder="tu@email.com"></div>
+    <div class="form-group"><label>Contraseña</label><input id="regPass" type="password" placeholder="Mínimo 6 caracteres"></div>
+    <button class="btn btn-primary w-full" onclick="register()">Crear cuenta gratis</button>
+    <div id="authError" style="color:var(--danger);font-size:.8rem;margin-top:8px;display:none"></div>
+    <div class="auth-switch">¿Ya tenés cuenta? <a onclick="renderLogin()">Iniciar sesión</a></div>
+  `;
+}
+async function login() {
+  const email = $('loginEmail').value; const password = $('loginPass').value;
+  if (!email || !password) { showAuthError('Completá todos los campos'); return; }
+  try {
+    const res = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password}) });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.error); return; }
+    token = data.token; user = data.user;
+    localStorage.setItem('afip_token', token);
+    localStorage.setItem('afip_user', JSON.stringify(user));
+    initApp();
+  } catch { showAuthError('Error de conexión'); }
+}
+async function register() {
+  const name = $('regName').value; const email = $('regEmail').value; const password = $('regPass').value;
+  if (!name || !email || !password) { showAuthError('Completá todos los campos'); return; }
+  if (password.length < 6) { showAuthError('La contraseña debe tener al menos 6 caracteres'); return; }
+  try {
+    const res = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name,email,password}) });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.error); return; }
+    token = data.token; user = data.user;
+    localStorage.setItem('afip_token', token);
+    localStorage.setItem('afip_user', JSON.stringify(user));
+    initApp();
+  } catch { showAuthError('Error de conexión'); }
+}
+function showAuthError(msg) { const e = $('authError'); e.textContent = msg; e.style.display = 'block'; }
+function logout() {
+  token = null; user = null;
+  localStorage.removeItem('afip_token'); localStorage.removeItem('afip_user');
+  showAuth();
+}
+
+// ===== NAVIGATION =====
+document.querySelectorAll('[data-tab]').forEach(el => {
+  el.addEventListener('click', () => switchTab(el.dataset.tab));
+});
+function switchTab(tab) {
+  document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const sec = $('section-' + tab);
+  if (sec) sec.classList.add('active');
+  const navEl = document.querySelector(`[data-tab="${tab}"]`);
+  if (navEl) navEl.classList.add('active');
+  if (tab === 'dashboard') loadDashboard();
+  if (tab === 'dolar') { loadCotizaciones(); convertirMoneda(); }
+  if (tab === 'gastos') loadGastos();
+  if (tab === 'alertas') loadAlertas();
+  if (tab === 'planes') loadPlanes();
+  if (tab === 'herramientas') initHerramientas();
+  if (tab === 'ayuda') { loadFAQ(); loadGuia('monotributo'); }
+  if (tab === 'monotributo') { loadTablaCategorias(); loadVencimientos(); }
+}
+
+document.querySelectorAll('#monoTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#monoTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.mono-section').forEach(s => s.style.display = 'none');
+    $('mono-' + t.dataset.tab).style.display = 'block';
+    if (t.dataset.tab === 'vencimientos') loadVencimientos();
+    if (t.dataset.tab === 'tabla') loadTablaCategorias();
+  });
+});
+
+document.querySelectorAll('#guiasTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#guiasTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    loadGuia(t.dataset.guia);
+  });
+});
+
+// ===== TIER =====
+async function checkTier() {
+  try {
+    const res = await fetch('/api/payments/status/' + user.id, { headers: apiHeaders() });
+    const data = await res.json();
+    userTier = data.tier || 'free';
+    userTierData = data;
+    const badge = $('tierBadge');
+    badge.textContent = data.tier.toUpperCase();
+    badge.className = 'tier-' + data.tier;
+    return data;
+  } catch { return { tier: 'free', features: {} }; }
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  try {
+    const [cotizRes, tierData] = await Promise.all([
+      fetch('/api/cotizaciones'),
+      checkTier(),
+    ]);
+    cotizacionesCache = await cotizRes.json();
+    $('dashBlue').textContent = cotizacionesCache.blue?.sell ? '$' + formatPrice(cotizacionesCache.blue.sell) : '---';
+    const gastosRes = await fetch('/api/gastos', { headers: apiHeaders() });
+    const gastos = await gastosRes.json();
+    const mesActual = new Date().getMonth() + 1;
+    const gastosMes = gastos.filter(e => new Date(e.date).getMonth() + 1 === mesActual);
+    $('dashGastos').textContent = '$' + formatPrice(gastosMes.reduce((s, e) => s + e.amount, 0));
+    $('dashCotizaciones').innerHTML = renderCotizaciones(cotizacionesCache);
+    const venRes = await fetch('/api/monotributo/vencimientos');
+    const vens = await venRes.json();
+    const proximo = vens.find(v => { try { const p = v.fecha.split('/'); return new Date(p[2], p[1]-1, p[0]) > new Date(); } catch { return false; } });
+    $('dashVencimiento').textContent = proximo ? proximo.concepto + ' (' + proximo.fecha + ')' : '---';
+    $('dashAlertas').textContent = tierData.tier !== 'free' ? '✅ Activas' : '🔒 Premium';
+  } catch {}
+}
+
+// ===== MONOTRIBUTO =====
+async function loadTablaCategorias() {
+  try {
+    const res = await fetch('/api/monotributo/categorias');
+    const cats = await res.json();
+    $('tablaCategorias').innerHTML = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem"><thead><tr style="border-bottom:2px solid var(--border)">' +
+      '<th style="text-align:left;padding:6px 8px;color:var(--text2)">Cat.</th><th style="text-align:right;padding:6px 8px;color:var(--text2)">Ingreso Máx.</th><th style="text-align:right;padding:6px 8px;color:var(--text2)">Superficie</th><th style="text-align:right;padding:6px 8px;color:var(--text2)">Energía/año</th><th style="text-align:right;padding:6px 8px;color:var(--text2)">Alquiler/año</th><th style="text-align:right;padding:6px 8px;color:var(--text2)">Cuota/mes</th></tr></thead><tbody>' +
+      cats.map(c => '<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:700">' + c.code + '</td><td style="text-align:right;padding:6px 8px">$' + formatPrice(c.maxIncome) + '</td><td style="text-align:right;padding:6px 8px">' + c.maxArea + ' m²</td><td style="text-align:right;padding:6px 8px">' + formatPrice(c.maxEnergy) + ' kWh</td><td style="text-align:right;padding:6px 8px">$' + formatPrice(c.maxRent) + '</td><td style="text-align:right;padding:6px 8px;font-weight:700">$' + formatPrice(c.monthlyFee) + '</td></tr>').join('') +
+      '</tbody></table></div>';
+  } catch {}
+}
+async function calcularMonotributo() {
+  const ing = parseFloat($('monoIngresos').value);
+  if (!ing) return toast('Ingresá los ingresos anuales');
+  try {
+    const res = await fetch('/api/monotributo/calcular', { method:'POST', headers:apiHeaders(), body: JSON.stringify({ ingresosAnuales: ing, superficie: parseFloat($('monoSuperficie').value)||undefined, energia: parseFloat($('monoEnergia').value)||undefined, alquilerMensual: parseFloat($('monoAlquiler').value)||undefined }) });
+    const d = await res.json();
+    const r = $('monoResultado'); r.style.display = 'block';
+    r.innerHTML = '<div style="text-align:center;margin-bottom:12px"><div style="font-size:.85rem;color:var(--text2)">Tu categoría es</div><div style="font-size:2.5rem;font-weight:800;color:var(--accent)">' + d.recomendada + '</div></div>' +
+      '<div class="result-row"><span class="label">💰 Costo mensual total</span><span class="value highlight">$' + formatPrice(d.costosMensuales.total) + '</span></div>' +
+      '<div class="result-row"><span class="label">Monotributo</span><span class="value">$' + formatPrice(d.costosMensuales.monotributo) + '</span></div>' +
+      '<div class="result-row"><span class="label">Jubilación</span><span class="value">$' + formatPrice(d.costosMensuales.jubilacion) + '</span></div>' +
+      '<div class="result-row"><span class="label">Obra Social</span><span class="value">$' + formatPrice(d.costosMensuales.obraSocial) + '</span></div>' +
+      (d.puedeExcluirse ? '<div style="margin-top:8px;color:var(--danger);font-size:.85rem">⚠️ Superaste el máximo. Consultá con un contador por la exclusión.</div>' : '');
+  } catch { toast('Error al calcular'); }
+}
+async function recategorizar() {
+  const ing = parseFloat($('recatIngresos').value);
+  if (!ing) return toast('Ingresá los ingresos');
+  try {
+    const res = await fetch('/api/monotributo/recategorizar', { method:'POST', headers:apiHeaders(), body: JSON.stringify({ categoriaActual: $('recatActual').value, ingresosUltimos12: ing }) });
+    const d = await res.json();
+    const r = $('recatResultado'); r.style.display = 'block';
+    const color = d.tipoCambio === 'sube' ? 'var(--danger)' : d.tipoCambio === 'baja' ? 'var(--success)' : 'var(--text)';
+    r.innerHTML = '<div style="text-align:center;margin-bottom:12px"><div style="font-size:.85rem;color:var(--text2)">' + d.categoriaActual + ' →</div><div style="font-size:2.5rem;font-weight:800;color:' + color + '">' + d.categoriaSugerida + '</div></div>' +
+      '<div class="result-row"><span class="label">Cuota mensual nueva</span><span class="value highlight">$' + formatPrice(d.sugerida.monthlyFee) + '</span></div>';
+  } catch { toast('Error'); }
+}
+async function loadVencimientos() {
+  try {
+    const res = await fetch('/api/monotributo/vencimientos');
+    const vens = await res.json();
+    $('vencimientosList').innerHTML = vens.map(v => {
+      const parts = v.fecha.split('/');
+      const d = new Date(parts[2], parts[1]-1, parts[0]);
+      const prox = d > new Date() && d - new Date() < 30*24*60*60*1000;
+      return '<div class="result-row" style="' + (prox ? 'background:rgba(245,158,11,.1);border-radius:4px;padding:6px 4px' : '') + '"><span class="label">' + v.concepto + '</span><span class="value" style="' + (prox ? 'color:var(--accent);font-weight:700' : '') + '">' + v.fecha + '</span></div>';
+    }).join('');
+  } catch {}
+}
+
+// ===== DÓLAR =====
+async function loadCotizaciones() {
+  try {
+    const res = await fetch('/api/cotizaciones');
+    cotizacionesCache = await res.json();
+    $('cotizacionesGrid').innerHTML = renderCotizaciones(cotizacionesCache);
+    $('dolarTimestamp').innerHTML = '<span>Se actualiza cada 60 segundos</span><span>Última: ' + new Date(cotizacionesCache.timestamp).toLocaleString('es-AR') + '</span>';
+    const histRes = await fetch('/api/cotizaciones/historicos');
+    const hist = await histRes.json();
+    if (hist.length) {
+      const ctx = $('dolarChart').getContext('2d');
+      if (dolarChartInstance) dolarChartInstance.destroy();
+      dolarChartInstance = new Chart(ctx, { type:'line', data:{ labels:hist.map(h=>h.fecha.slice(5)),
+        datasets:[{ label:'Blue compra', data:hist.map(h=>h.blue.buy), borderColor:'#22c55e', tension:.3, pointRadius:3 },
+          { label:'Blue venta', data:hist.map(h=>h.blue.sell), borderColor:'#ef4444', tension:.3, pointRadius:3 },
+          { label:'Oficial venta', data:hist.map(h=>h.oficial.sell), borderColor:'#3b82f6', tension:.3, pointRadius:3 }]
+        }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#94a3b8', boxWidth:12, padding:12 } } }, scales:{ x:{ ticks:{ color:'#94a3b8', maxTicksLimit:6 } }, y:{ ticks:{ color:'#94a3b8' } } } } });
+    }
+    convertirMoneda();
+  } catch {}
+}
+function renderCotizaciones(data) {
+  if (!data) return '';
+  return [
+    { type:'Blue', buy:data.blue?.buy, sell:data.blue?.sell, tag:'💵' },
+    { type:'Oficial', buy:data.oficial?.buy, sell:data.oficial?.sell, tag:'🏦' },
+    { type:'Tarjeta', value:data.tarjeta?.value, tag:'💳' },
+    { type:'MEP', value:data.mep?.value, tag:'📊' },
+    { type:'CCL', value:data.ccl?.value, tag:'🌐' },
+  ].map(i => '<div class="exchange-card"><div class="type">' + i.tag + ' ' + i.type + '</div>' +
+    (i.buy != null ? '<div class="price buy">Compra $' + formatPrice(i.buy) + '</div>' : '') +
+    (i.sell != null ? '<div class="price sell">Venta $' + formatPrice(i.sell) + '</div>' : '') +
+    (i.value != null ? '<div class="price blue">$' + formatPrice(i.value) + '</div>' : '') + '</div>').join('');
+}
+function convertirMoneda() {
+  const monto = parseFloat($('convMonto').value) || 0;
+  const desde = $('convDesde').value;
+  const hasta = $('convHasta').value;
+  const tipo = $('convTipo').value;
+  if (!cotizacionesCache || !monto) { $('convResultado').textContent = '---'; return; }
+  let tasa = 1;
+  if (tipo === 'blue') tasa = cotizacionesCache.blue?.sell || 1;
+  else if (tipo === 'oficial') tasa = cotizacionesCache.oficial?.sell || 1;
+  else if (tipo === 'tarjeta') tasa = cotizacionesCache.tarjeta?.value || 1;
+  let resultado;
+  if (desde === 'USD' && hasta === 'ARS') resultado = monto * tasa;
+  else if (desde === 'ARS' && hasta === 'USD') resultado = monto / tasa;
+  else resultado = monto;
+  $('convResultado').innerHTML = (hasta === 'USD' ? 'USD ' : '$ ') + formatPrice(resultado) +
+    '<span style="font-size:.9rem;color:var(--text2);display:block;font-weight:400">1 USD = $' + formatPrice(tasa) + '</span>';
+}
+
+// ===== GASTOS =====
+async function addGasto() {
+  const amt = parseFloat($('gastoMonto').value);
+  if (!amt) return toast('Ingresá un monto');
+  try {
+    const res = await fetch('/api/gastos', { method:'POST', headers:apiHeaders(),
+      body: JSON.stringify({ amount:amt, currency:$('gastoMoneda').value, category:$('gastoCategoria').value, description:$('gastoDesc').value || 'Sin descripción' }) });
+    if (!res.ok) { const e = await res.json(); $('gastoError').textContent = e.message; $('gastoError').style.display='block'; return; }
+    $('gastoError').style.display='none';
+    $('gastoMonto').value = ''; $('gastoDesc').value = '';
+    toast('✅ Gasto registrado');
+    loadGastos();
+  } catch { toast('Error'); }
+}
+async function deleteGasto(id) {
+  if (!confirm('Eliminar este gasto?')) return;
+  try { await fetch('/api/gastos/' + id, { method:'DELETE', headers:apiHeaders() }); loadGastos(); } catch {}
+}
+async function loadGastos() {
+  try {
+    const res = await fetch('/api/gastos', { headers:apiHeaders() });
+    const gastos = await res.json();
+    $('gastosList').innerHTML = !gastos.length
+      ? '<div class="empty-state"><div class="icon">📋</div><p>Todavía no registraste gastos.</p></div>'
+      : gastos.slice(0, 20).map(e => '<div class="expense-item"><div><strong>' + escapeHtml(e.description) + '</strong><br><span style="font-size:.75rem;color:var(--text2)">' + e.date + ' · ' + e.category + '</span></div><div style="display:flex;align-items:center;gap:8px"><span style="color:' + (e.currency==='USD'?'var(--accent)':'var(--success)') + '">' + e.currency + ' $' + formatPrice(e.amount) + '</span><button class="btn btn-danger btn-sm" onclick="deleteGasto(\'' + e.id + '\')">✕</button></div></div>').join('');
+    const mes = new Date().getMonth() + 1, anio = new Date().getFullYear();
+    $('gastoMes').textContent = mes + '/' + anio;
+    const r2 = await fetch('/api/gastos/resumen', { method:'POST', headers:apiHeaders(), body: JSON.stringify({month:mes,year:anio}) });
+    const sum = await r2.json();
+    $('gastoResumen').innerHTML = Object.entries(sum.totalPorMoneda || {}).map(([mon,val]) => '<div class="result-row"><span class="label">Total en ' + mon + '</span><span class="value">$' + formatPrice(val) + '</span></div>').join('') +
+      (sum.totalEnARS ? '<div class="result-row"><span class="label">💰 Total en ARS</span><span class="value highlight">$' + formatPrice(sum.totalEnARS) + '</span></div>' : '') +
+      (sum.total ? '<div class="result-row"><span class="label">📦 Cantidad</span><span class="value">' + sum.total + '</span></div>' : '');
+    const tier = await checkTier();
+    $('gastoLimit').textContent = '(' + (tier.tier === 'free' ? '10/mes' : tier.tier === 'pro' ? '200/mes' : '∞') + ')';
+  } catch {}
+}
+async function exportCSV() {
+  if (userTier === 'free') { toast('🔒 Necesitás Premium'); switchTab('planes'); return; }
+  try {
+    const res = await fetch('/api/export/gastos/csv', { headers:apiHeaders() });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'gastos_' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+    URL.revokeObjectURL(url);
+  } catch { toast('Error'); }
+}
+
+// ===== SUELDOS =====
+async function calcularSueldo() {
+  const bruto = parseFloat($('sueldoBruto').value);
+  if (!bruto) return toast('Ingresá el sueldo bruto');
+  try {
+    const res = await fetch('/api/sueldos/calcular', { method:'POST', headers:apiHeaders(), body: JSON.stringify({bruto}) });
+    const d = await res.json();
+    $('sueldoResultado').style.display='block';
+    $('sueldoResultado').innerHTML = '<div style="text-align:center;margin-bottom:12px"><div style="font-size:.85rem;color:var(--text2)">💼 Sueldo Neto</div><div style="font-size:2.5rem;font-weight:800;color:var(--success)">$' + formatPrice(d.neto) + '</div></div>' +
+      '<div class="result-row"><span class="label">Sueldo Bruto</span><span class="value">$' + formatPrice(d.bruto) + '</span></div>' +
+      '<div class="result-row"><span class="label">💰 Deducciones</span><span class="value" style="color:var(--danger)">-$' + formatPrice(d.descuentos.total) + '</span></div>' +
+      '<div class="result-row"><span class="label">🎄 Aguinaldo neto</span><span class="value">$' + formatPrice(d.aguinaldo.neto) + '</span></div>' +
+      '<div class="result-row"><span class="label">🏢 Cargas patronales</span><span class="value">$' + formatPrice(d.cargasPatronales) + '</span></div>';
+    const labels = { jubilacion:'Jubilación 11%', pami:'PAMI 3%', obraSocial:'Obra Social 3%', sindicato:'Sindicato 2%', seguroVida:'Seguro de Vida', ganancias:'Ganancias', deduccionEspecial:'Deducción Especial' };
+    $('sueldoDesglose').innerHTML = Object.entries(d.descuentos).filter(([k,v]) => k !== 'total').map(([k,v]) =>
+      '<div class="result-row"><span class="label">' + (labels[k] || capitalize(k)) + '</span><span class="value" style="color:var(--danger)">-$' + formatPrice(v) + '</span></div>').join('');
+  } catch { toast('Error'); }
+}
+
+// ===== HERRAMIENTAS =====
+function initHerramientas() {
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  ['infMesDesde','infMesHasta'].forEach(id => {
+    const sel = $(id);
+    if (sel.options.length) return;
+    meses.forEach((m, i) => { const o = document.createElement('option'); o.value = i+1; o.textContent = m; sel.appendChild(o); });
+    sel.value = id === 'infMesDesde' ? 1 : new Date().getMonth() + 1;
+  });
+}
+async function calcularInflacion() {
+  const body = { monto: parseFloat($('infMonto').value), mesDesde: parseInt($('infMesDesde').value), anioDesde: parseInt($('infAnioDesde').value), mesHasta: parseInt($('infMesHasta').value), anioHasta: parseInt($('infAnioHasta').value) };
+  if (!body.monto) return toast('Ingresá un monto');
+  try {
+    const res = await fetch('/api/tools/inflacion/calcular', { method:'POST', headers:apiHeaders(), body: JSON.stringify(body) });
+    const d = await res.json();
+    const r = $('infResultado'); r.style.display = 'block';
+    r.innerHTML = '<div style="text-align:center;margin-bottom:12px"><div style="font-size:.85rem;color:var(--text2)">$' + formatPrice(d.montoOriginal) + ' de ' + d.desde + ' equivalen a</div><div style="font-size:2rem;font-weight:800;color:var(--accent)">$' + formatPrice(d.montoAjustado) + '</div><div style="font-size:.85rem;color:var(--text2)">en ' + d.hasta + '</div></div>' +
+      '<div class="result-row"><span class="label">Inflación acumulada</span><span class="value highlight">' + d.inflacionAcumulada + '</span></div>' +
+      '<div class="result-row"><span class="label">Factor de ajuste</span><span class="value">' + d.factor + 'x</span></div>' +
+      '<div class="result-row"><span class="label">Período</span><span class="value">' + d.periodoMeses + ' meses</span></div>';
+  } catch { toast('Error'); }
+}
+async function calcularPrestamo() {
+  const body = { monto: parseFloat($('prestMonto').value), cuotas: parseInt($('prestCuotas').value), interesAnual: parseFloat($('prestTasa').value) };
+  if (!body.monto || !body.cuotas) return toast('Completá monto y cuotas');
+  try {
+    const res = await fetch('/api/tools/prestamo/calcular', { method:'POST', headers:apiHeaders(), body: JSON.stringify(body) });
+    const d = await res.json();
+    const r = $('prestResultado'); r.style.display = 'block';
+    r.innerHTML = '<div style="text-align:center;margin-bottom:12px"><div style="font-size:.85rem;color:var(--text2)">Cuota mensual fija</div><div style="font-size:2rem;font-weight:800;color:var(--danger)">$' + formatPrice(d.cuotaMensual) + '</div></div>' +
+      '<div class="result-row"><span class="label">💰 Total a devolver</span><span class="value">$' + formatPrice(d.total) + '</span></div>' +
+      '<div class="result-row"><span class="label">📊 Intereses totales</span><span class="value" style="color:var(--danger)">$' + formatPrice(d.interesTotal) + '</span></div>' +
+      (d.schedule.length ? '<div style="margin-top:8px;font-size:.75rem"><strong>Primeras cuotas:</strong>' + d.schedule.map(s => '<div class="result-row"><span class="label">Cuota ' + s.cuota + '</span><span class="value">$' + formatPrice(s.monto) + '</span></div>').join('') + '</div>' : '');
+  } catch { toast('Error'); }
+}
+
+// ===== ALERTAS =====
+async function loadAlertas() {
+  if (userTier === 'free') {
+    $('alertasList').innerHTML = '<div class="empty-state"><div class="icon">🔕</div><p>Las alertas automáticas son Premium.</p><button class="btn btn-premium mt-2" onclick="switchTab(\'planes\')">⭐ Activá Premium</button></div>';
+    return;
+  }
+  try {
+    const res = await fetch('/api/alerts', { headers:apiHeaders() });
+    const alerts = await res.json();
+    $('alertasList').innerHTML = !alerts.length
+      ? '<div class="empty-state"><div class="icon">🔕</div><p>No hay alertas. Hacé click en "Verificar ahora".</p></div>'
+      : alerts.map(a => '<div class="guide-card"><div style="display:flex;justify-content:space-between"><strong>' + a.title + '</strong><span style="font-size:.75rem;color:var(--text2)">' + new Date(a.created_at).toLocaleDateString('es-AR') + '</span></div><p style="font-size:.8rem;color:var(--text2);margin-top:4px">' + (a.message || '') + '</p></div>').join('');
+  } catch {}
+}
+async function checkAlerts() {
+  if (userTier === 'free') { toast('🔒 Premium requerido'); switchTab('planes'); return; }
+  try {
+    const res = await fetch('/api/alerts/simular-vencimientos', { method:'POST', headers:apiHeaders() });
+    const d = await res.json();
+    toast('✅ ' + d.alerts_creadas + ' alertas generadas');
+    loadAlertas();
+  } catch { toast('Error'); }
+}
+
+// ===== PLANES =====
+async function loadPlanes() {
+  try {
+    const res = await fetch('/api/payments/planes');
+    const planes = await res.json();
+    const prods = { free: ['Calculadora Monotributo','Cotizaciones en vivo','Tabla de categorías','10 gastos/mes','Sin alertas','Sin exportación'], pro: ['Todo Free','200 gastos/mes','Alertas vencimiento','Recategorización automática','Exportar a CSV','Soporte prioritario'], premium: ['Todo Pro','Gastos ilimitados','Alertas avanzadas','Dólar histórico completo','Todas las herramientas','Soporte 1:1'] };
+    $('planesGrid').innerHTML = planes.map(p => '<div class="plan-card' + (p.id==='pro'?' recomendado':'') + '"><h3>' + (p.id==='free'?'🤝 Free':p.id==='pro'?'⭐ Pro':'👑 Premium') + '</h3>' +
+      '<div class="price">' + (p.id==='free'?'$0':'$'+formatPrice(p.price)) + '</div>' + (p.id!=='free'?'<div style="font-size:.8rem;color:var(--text2)">/mes</div>':'') +
+      '<div class="features">' + prods[p.id].map(f => '<div><span class="check">✓</span> ' + f + '</div>').join('') + '</div>' +
+      (p.id==='free'?'<button class="btn btn-outline w-full" disabled>Plan actual</button>':'<button class="btn btn-'+ (p.id==='pro'?'premium':'primary') +' w-full" onclick="comprarPlan(\''+p.id+'\')">Contratar ' + (p.id==='pro'?'Pro':'Premium') + '</button>') + '</div>').join('');
+  } catch {}
+}
+async function comprarPlan(planId) {
+  try {
+    const res = await fetch('/api/payments/crear-preferencia', { method:'POST', headers:apiHeaders(), body: JSON.stringify({ planId }) });
+    const data = await res.json();
+    if (data.init_point) window.open(data.init_point, '_blank');
+    if (data.status === 'mock') {
+      $('paymentStatus').style.display = 'block';
+      $('paymentStatus').innerHTML = '<h3>✅ Plan ' + planId.toUpperCase() + ' activado</h3><p style="color:var(--text2);margin:8px 0">' + data.message + '</p><button class="btn btn-primary mt-2" onclick="switchTab(\'dashboard\')">Ir al Dashboard</button>';
+      toast('✅ Bienvenido a ' + planId.toUpperCase() + '!');
+      await checkTier();
+    }
+  } catch { toast('Error'); }
+}
+
+// ===== AYUDA =====
+function loadFAQ() {
+  const faqs = [
+    { q: '¿Qué es el Monotributo?', a: 'Régimen impositivo simplificado argentino para pequeños contribuyentes. Unifica varios impuestos en una sola cuota mensual. Hay 11 categorías (A a K).' },
+    { q: '¿Cómo sé mi categoría?', a: 'Usá la calculadora en la pestaña "Monotributo". Ingresá tus ingresos anuales y te decimos qué categoría te corresponde.' },
+    { q: '¿Qué es la recategorización?', a: 'Cambio de categoría cuando tus ingresos varían. Se hace cada 6 meses (enero y julio).' },
+    { q: '¿De dónde vienen las cotizaciones?', a: 'Usamos la API pública de Bluelytics. El blue se basa en promedios de cuevas. El oficial del Banco Nación.' },
+    { q: '¿Cómo funciona el límite de gastos?', a: 'Free: 10 gastos/mes. Pro: 200. Premium: ilimitado. Se resetea cada mes.' },
+    { q: '¿Qué es el dólar tarjeta?', a: 'Cotización para consumos en el exterior: oficial + 30% PAIS + 35% percepción = oficial × 1.65.' },
+    { q: '¿Cómo pago?', a: 'Usamos MercadoPago. En modo simulación se activa automáticamente.' },
+  ];
+  $('faqContent').innerHTML = faqs.map(f =>
+    '<div class="faq-item"><div class="faq-q" onclick="toggleFAQ(this)">' + f.q + ' <span style="font-size:.7rem">▼</span></div><div class="faq-a">' + f.a + '</div></div>'
+  ).join('');
+}
+function toggleFAQ(el) { const a = el.nextElementSibling; a.classList.toggle('open'); el.querySelector('span').textContent = a.classList.contains('open') ? '▲' : '▼'; }
+async function loadGuia(tipo) {
+  try {
+    const res = await fetch('/api/tools/guias');
+    const guias = await res.json();
+    const g = guias[tipo];
+    if (!g) return;
+    $('guiasContent').innerHTML = '<div class="guide-card"><h3 style="margin-bottom:8px">' + g.titulo + '</h3>' +
+      (g.pasos ? g.pasos.map((p, i) => '<p style="margin:6px 0"><span class="step-num">' + (i+1) + '</span>' + p + '</p>').join('') : '') +
+      (g.explicacion ? g.explicacion.map(e => '<p style="margin:6px 0">• ' + e + '</p>').join('') : '') +
+      (g.tip ? '<p style="margin-top:8px;font-size:.75rem;color:var(--accent)">💡 ' + g.tip + '</p>' : '') + '</div>';
+  } catch {}
+}
+
+// ===== INIT =====
+function initApp() {
+  hideAuth();
+  if (user) $('userEmail').textContent = user.email;
+  checkTier();
+  loadDashboard();
+  loadCotizaciones();
+  loadGastos();
+  loadTablaCategorias();
+  loadVencimientos();
+  loadAlertas();
+  initHerramientas();
+  switchTab('dashboard');
+}
+
+// Check stored session
+if (token && localStorage.getItem('afip_user')) {
+  user = JSON.parse(localStorage.getItem('afip_user'));
+  // Verify token is still valid
+  fetch('/api/auth/me', { headers: apiHeaders() }).then(r => {
+    if (r.ok) initApp(); else showAuth();
+  }).catch(() => showAuth());
+} else {
+  showAuth();
+}
+
+setInterval(() => {
+  if ($('section-dashboard').classList.contains('active')) loadDashboard();
+  if ($('section-dolar').classList.contains('active')) loadCotizaciones();
+}, 60000);
+</script>
+</body>
+</html>
