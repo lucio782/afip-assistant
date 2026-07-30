@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: afip-assistant
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: afip-db
+          property: connectionString
+      - key: MP_ACCESS_TOKEN
+        sync: false
+
+databases:
+  - name: afip-db
+    databaseName: afip
+    plan: free
