@@ -2,9 +2,10 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const database = require('../services/database');
 const { generateToken, requireAuth } = require('../services/auth');
+const h = require('../services/asyncHandler');
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', h(async (req, res) => {
   try {
     const { email, password, name } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
@@ -21,9 +22,9 @@ router.post('/register', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Error al registrar', detail: err.message });
   }
-});
+}));
 
-router.post('/login', async (req, res) => {
+router.post('/login', h(async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
@@ -39,12 +40,12 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Error al iniciar sesión', detail: err.message });
   }
-});
+}));
 
-router.get('/me', requireAuth, async (req, res) => {
+router.get('/me', requireAuth, h(async (req, res) => {
   const user = await database.getUser(req.userId);
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
   res.json({ id: user.id, email: user.email, name: user.name, tier: user.tier, subscription_status: user.subscription_status });
-});
+}));
 
 module.exports = router;

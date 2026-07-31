@@ -4,6 +4,7 @@ const { getPlans } = require('../services/tier');
 const { requireAuth } = require('../services/auth');
 
 const router = express.Router();
+const h = require('../services/asyncHandler');
 
 let mercadopago = null;
 try {
@@ -14,7 +15,7 @@ try {
 
 router.get('/planes', (req, res) => { res.json(getPlans()); });
 
-router.post('/crear-preferencia', requireAuth, async (req, res) => {
+router.post('/crear-preferencia', requireAuth, h(async (req, res) => {
   const { planId } = req.body;
   const plans = getPlans();
   const plan = plans.find(p => p.id === planId);
@@ -53,7 +54,7 @@ router.post('/crear-preferencia', requireAuth, async (req, res) => {
   } catch (err) {
     res.status(502).json({ error: 'Error al crear pago', detail: err.message });
   }
-});
+}));
 
 router.post('/webhook', (req, res) => {
   const payment = req.body;
@@ -61,10 +62,10 @@ router.post('/webhook', (req, res) => {
   res.sendStatus(200);
 });
 
-router.get('/status/:userId', async (req, res) => {
+router.get('/status/:userId', h(async (req, res) => {
   const user = await database.getOrCreateUser(req.params.userId);
   const { TIERS } = require('../services/tier');
   res.json({ userId: user.id, tier: user.tier, subscription_status: user.subscription_status, features: TIERS[user.tier] || TIERS.free });
-});
+}));
 
 module.exports = router;

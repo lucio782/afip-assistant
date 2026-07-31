@@ -2,11 +2,12 @@ const express = require('express');
 const { getCotizaciones } = require('../services/exchangeScraper');
 const database = require('../services/database');
 const router = express.Router();
+const h = require('../services/asyncHandler');
 
 let cache = { data: null, timestamp: 0 };
 const CACHE_TTL = 60000; // 1 min
 
-router.get('/', async (req, res) => {
+router.get('/', h(async (req, res) => {
   if (Date.now() - cache.timestamp < CACHE_TTL) {
     return res.json(cache.data);
   }
@@ -28,9 +29,9 @@ router.get('/', async (req, res) => {
     if (cache.data) return res.json(cache.data);
     res.status(502).json({ error: 'No se pudieron obtener las cotizaciones' });
   }
-});
+}));
 
-router.get('/historicos', async (req, res) => {
+router.get('/historicos', h(async (req, res) => {
   try {
     const histBlue = await database.getExchangeHistory('blue', 7);
     const histOficial = await database.getExchangeHistory('oficial', 7);
@@ -61,6 +62,6 @@ router.get('/historicos', async (req, res) => {
   } catch {
     res.json([]);
   }
-});
+}));
 
 module.exports = router;

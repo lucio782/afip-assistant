@@ -180,7 +180,7 @@ async function getOrCreateUser(userId) {
 }
 
 async function updateUserTier(userId, tier, mpData = {}) {
-  await query("UPDATE users SET tier = $1, mercadopago_id = $2, subscription_id = $3, subscription_status = $4, updated_at = NOW() WHERE id = $5",
+  await query("UPDATE users SET tier = $1, mercadopago_id = $2, subscription_id = $3, subscription_status = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5",
     [tier, mpData.mercadopago_id || '', mpData.subscription_id || '', mpData.subscription_status || 'active', userId]);
 }
 
@@ -200,8 +200,8 @@ async function getExpenses(userId, limit = 50, offset = 0) {
   return query('SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC, created_at DESC LIMIT $2 OFFSET $3', [userId, limit, offset]);
 }
 
-async function deleteExpense(id) {
-  await query('DELETE FROM expenses WHERE id = $1', [id]);
+async function deleteExpense(id, userId) {
+  await query('DELETE FROM expenses WHERE id = $1 AND user_id = $2', [id, userId]);
 }
 
 async function getExpenseSummary(userId, month, year) {
@@ -261,11 +261,8 @@ async function incrementRateLimit(userId) {
     await query('INSERT INTO rate_limits (user_id, expense_count, month) VALUES ($1, 1, $2) ON CONFLICT (user_id, month) DO UPDATE SET expense_count = rate_limits.expense_count + 1',
       [userId, month]);
   } else {
+    await query("INSERT OR IGNORE INTO rate_limits (user_id, expense_count, month) VALUES ($1, 1, $2)", [userId, month]);
     await query("UPDATE rate_limits SET expense_count = expense_count + 1 WHERE user_id = $1 AND month = $2", [userId, month]);
-    const row = await getOne("SELECT changes() as c");
-    if (!row || row.c === 0) {
-      await query("INSERT INTO rate_limits (user_id, expense_count, month) VALUES ($1, 1, $2)", [userId, month]);
-    }
   }
 }
 

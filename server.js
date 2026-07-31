@@ -31,6 +31,11 @@ app.use('/api/export', require('./routes/export'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/tools', require('./routes/tools'));
 
+app.use((err, req, res, next) => {
+  console.error('Error no controlado:', err.message);
+  res.status(500).json({ error: 'Error interno del servidor', detail: err.message });
+});
+
 app.get('/api/status', (req, res) => {
   res.json({
     ok: true, name: 'AFIP Assistant', version: '2.0.0',

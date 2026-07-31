@@ -4,19 +4,20 @@ const { requireTier } = require('../services/tier');
 const { requireAuth } = require('../services/auth');
 
 const router = express.Router();
+const h = require('../services/asyncHandler');
 
-router.get('/', requireAuth, requireTier('alerts'), async (req, res) => {
+router.get('/', requireAuth, requireTier('alerts'), h(async (req, res) => {
   res.json(await database.getUserAlerts(req.userId));
-});
+}));
 
-router.post('/', requireAuth, requireTier('alerts'), async (req, res) => {
+router.post('/', requireAuth, requireTier('alerts'), h(async (req, res) => {
   const { type, title, message } = req.body;
   if (!type || !title) return res.status(400).json({ error: 'Tipo y título requeridos' });
   const alert = await database.createAlert(req.userId, type, title, message);
   res.status(201).json(alert);
-});
+}));
 
-router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), async (req, res) => {
+router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), h(async (req, res) => {
   const now = new Date();
   const alerts = [];
 
@@ -45,6 +46,6 @@ router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), async (
   } catch {}
 
   res.json({ alerts_creadas: alerts.length, alerts });
-});
+}));
 
 module.exports = router;

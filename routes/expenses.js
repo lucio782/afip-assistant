@@ -5,6 +5,7 @@ const { getCotizaciones } = require('../services/exchangeScraper');
 const { requireAuth, optionalAuth } = require('../services/auth');
 
 const router = express.Router();
+const h = require('../services/asyncHandler');
 
 router.get('/', optionalAuth, (req, res) => {
   const limit = parseInt(req.query.limit) || 50;
@@ -12,7 +13,7 @@ router.get('/', optionalAuth, (req, res) => {
   database.getExpenses(req.userId, limit, offset).then(expenses => res.json(expenses));
 });
 
-router.post('/', requireAuth, expenseRateLimit, async (req, res) => {
+router.post('/', requireAuth, expenseRateLimit, h(async (req, res) => {
   const { amount, currency, category, description, date } = req.body;
   if (!amount || !currency) return res.status(400).json({ error: 'Monto y moneda requeridos' });
 
@@ -23,14 +24,14 @@ router.post('/', requireAuth, expenseRateLimit, async (req, res) => {
   });
   await database.incrementRateLimit(req.userId);
   res.status(201).json(expense);
-});
+}));
 
-router.delete('/:id', requireAuth, async (req, res) => {
-  await database.deleteExpense(req.params.id);
+router.delete('/:id', requireAuth, h(async (req, res) => {
+  await database.deleteExpense(req.params.id, req.userId);
   res.json({ ok: true });
-});
+}));
 
-router.post('/resumen', optionalAuth, async (req, res) => {
+router.post('/resumen', optionalAuth, h(async (req, res) => {
   const { month, year } = req.body;
   const m = month || new Date().getMonth() + 1;
   const y = year || new Date().getFullYear();
@@ -60,6 +61,6 @@ router.post('/resumen', optionalAuth, async (req, res) => {
     totalEnARS: Math.round(totalARS), porCategoria: byCategory,
     cotizacionesUsadas: cotizaciones,
   });
-});
+}));
 
 module.exports = router;

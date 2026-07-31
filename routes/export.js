@@ -4,8 +4,9 @@ const { requireTier } = require('../services/tier');
 const { requireAuth } = require('../services/auth');
 
 const router = express.Router();
+const h = require('../services/asyncHandler');
 
-router.get('/gastos/csv', requireAuth, requireTier('export'), async (req, res) => {
+router.get('/gastos/csv', requireAuth, requireTier('export'), h(async (req, res) => {
   const expenses = await database.getExpenses(req.userId, 99999);
   const headers = 'Fecha,Descripción,Categoría,Moneda,Monto\n';
   const rows = expenses.map(e =>
@@ -14,7 +15,7 @@ router.get('/gastos/csv', requireAuth, requireTier('export'), async (req, res) =
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename=gastos_afip.csv');
   res.send('\uFEFF' + headers + rows);
-});
+}));
 
 router.get('/monotributo/resumen', requireAuth, requireTier('export'), (req, res) => {
   const { getCategorias } = require('../services/storage');
