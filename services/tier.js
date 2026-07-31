@@ -1,7 +1,7 @@
 const database = require('./database');
 
 const TIERS = {
-  free: { name: 'Free', expensesPerMonth: 10, alerts: false, export: false, autoRecategorizacion: false, price: 0 },
+  free: { name: 'Free', expensesPerMonth: 99999, alerts: true, export: true, autoRecategorizacion: true, price: 0 },
   pro: { name: 'Pro', expensesPerMonth: 200, alerts: true, export: true, autoRecategorizacion: true, price: 3000 },
   premium: { name: 'Premium', expensesPerMonth: 99999, alerts: true, export: true, autoRecategorizacion: true, price: 8000 },
 };

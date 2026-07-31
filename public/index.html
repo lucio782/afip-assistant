@@ -14,10 +14,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:0 16px}
 .logo{font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:8px;cursor:pointer}
 .logo span{color:var(--primary)}
-#tierBadge{font-size:.65rem;padding:3px 10px;border-radius:20px;font-weight:700;cursor:pointer;transition:.2s}
-.tier-free{background:#334155;color:#94a3b8}
-.tier-pro{background:var(--primary);color:#fff}
-.tier-premium{background:var(--premium);color:#000}
 .nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .nav::-webkit-scrollbar{display:none}
 .nav a{cursor:pointer;padding:5px 10px;border-radius:16px;font-size:.75rem;font-weight:500;white-space:nowrap;color:var(--text2);text-decoration:none;transition:.2s;flex-shrink:0}
@@ -47,8 +43,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .btn-success{background:var(--success);color:#fff}
 .btn-outline{background:transparent;border:2px solid var(--border);color:var(--text)}
 .btn-outline:hover{border-color:var(--primary);color:var(--primary)}
-.btn-premium{background:var(--premium);color:#000;font-weight:700}
-.btn-premium:hover{opacity:.9}
 .btn-ghost{background:transparent;color:var(--text2);padding:4px 10px}
 .btn-ghost:hover{color:var(--text)}
 .w-full{width:100%}
@@ -87,7 +81,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .empty-state .icon{font-size:2rem;margin-bottom:8px}
 .error-msg{color:var(--danger);font-size:.8rem;display:none}
 .success-msg{color:var(--success);font-size:.8rem}
-.premium-badge{background:var(--premium);color:#000;border-radius:20px;padding:2px 10px;font-size:.65rem;font-weight:700;display:inline-block}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border-radius:var(--radius);padding:12px 20px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:999;border:1px solid var(--border);font-size:.85rem;max-width:360px;display:none;animation:fadeIn .3s}
 .toast.show{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -125,7 +118,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 
 <header id="appHeader" style="display:none">
   <div class="header-inner">
-    <div class="logo" onclick="switchTab('dashboard')">🏛️ <span>AFIP</span> Assistant <span id="tierBadge" class="tier-free" onclick="switchTab('planes')">FREE</span></div>
+    <div class="logo" onclick="switchTab('dashboard')">🏛️ <span>AFIP</span> Assistant</div>
     <div style="display:flex;align-items:center;gap:8px">
       <span id="userEmail" style="font-size:.75rem;color:var(--text2)"></span>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Salir</button>
@@ -140,7 +133,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
       <a data-tab="herramientas">🔧 Herramientas</a>
       <a data-tab="sueldos">💼 Sueldos</a>
       <a data-tab="alertas">🔔 Alertas</a>
-      <a data-tab="planes" style="color:var(--accent)">⭐ Premium</a>
       <a data-tab="ayuda">❓ Ayuda</a>
     </div>
   </div>
@@ -175,7 +167,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
         <button class="btn btn-outline w-full" onclick="switchTab('herramientas')">🔄 Calcular inflación / convertir monedas</button>
         <button class="btn btn-outline w-full" onclick="switchTab('sueldos')">💰 Calcular sueldo neto</button>
         <button class="btn btn-outline w-full" onclick="switchTab('gastos')">📊 Registrar un gasto</button>
-        <button class="btn btn-premium w-full" onclick="switchTab('planes')">⭐ Ver planes Premium</button>
       </div>
     </div>
   </div>
@@ -246,7 +237,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 <section id="section-gastos" class="section">
   <div class="grid-2">
     <div class="card">
-      <h2>➕ Registrar nuevo gasto <span id="gastoLimit" style="font-size:.75rem;color:var(--text2);font-weight:400"></span></h2>
+      <h2>➕ Registrar nuevo gasto</h2>
       <div class="form-row">
         <div class="form-group"><label>💰 Monto</label><input id="gastoMonto" type="number" placeholder="Ej: 5000" step="any"></div>
         <div class="form-group"><label>💱 Moneda</label><select id="gastoMoneda"><option value="ARS">ARS 🇦🇷</option><option value="USD">USD 🇺🇸</option></select></div>
@@ -263,7 +254,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
       <h2 style="margin:0">📋 Movimientos recientes</h2>
       <div style="display:flex;gap:4px">
         <button class="btn btn-outline btn-sm" onclick="loadGastos()">🔄 Actualizar</button>
-        <button class="btn btn-outline btn-sm" id="exportCsvBtn" onclick="exportCSV()">📥 Exportar <span class="premium-badge" style="margin-left:2px">PRO</span></button>
+        <button class="btn btn-outline btn-sm" id="exportCsvBtn" onclick="exportCSV()">📥 Exportar</button>
       </div>
     </div>
     <div id="gastosList"></div>
@@ -320,21 +311,11 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 <section id="section-alertas" class="section">
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="margin:0">🔔 Alertas inteligentes <span class="premium-badge" style="margin-left:4px">PRO</span></h2>
-      <button class="btn btn-premium btn-sm" id="checkAlertsBtn" onclick="checkAlerts()">🔄 Verificar ahora</button>
+      <h2 style="margin:0">🔔 Alertas inteligentes</h2>
+      <button class="btn btn-primary btn-sm" id="checkAlertsBtn" onclick="checkAlerts()">🔄 Verificar ahora</button>
     </div>
     <div id="alertasList"></div>
   </div>
-</section>
-
-<!-- ===== PLANES ===== -->
-<section id="section-planes" class="section">
-  <div style="text-align:center;margin-bottom:24px">
-    <h2 style="font-size:1.5rem;margin-bottom:8px">⭐ Elegí tu plan</h2>
-    <p style="color:var(--text2);font-size:.9rem">Todas las herramientas financieras que necesitás para Argentina.</p>
-  </div>
-  <div class="grid-3" id="planesGrid"></div>
-  <div class="card" id="paymentStatus" style="display:none;text-align:center"></div>
 </section>
 
 <!-- ===== AYUDA ===== -->
@@ -357,8 +338,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 // ===== AUTH STATE =====
 let token = localStorage.getItem('afip_token');
 let user = null;
-let userTier = 'free';
-let userTierData = {};
 let dolarChartInstance = null;
 let cotizacionesCache = null;
 
@@ -453,7 +432,6 @@ function switchTab(tab) {
   if (tab === 'dolar') { loadCotizaciones(); convertirMoneda(); }
   if (tab === 'gastos') loadGastos();
   if (tab === 'alertas') loadAlertas();
-  if (tab === 'planes') loadPlanes();
   if (tab === 'herramientas') initHerramientas();
   if (tab === 'ayuda') { loadFAQ(); loadGuia('monotributo'); }
   if (tab === 'monotributo') { loadTablaCategorias(); loadVencimientos(); }
@@ -478,27 +456,10 @@ document.querySelectorAll('#guiasTabs .tab').forEach(t => {
   });
 });
 
-// ===== TIER =====
-async function checkTier() {
-  try {
-    const res = await fetch('/api/payments/status/' + user.id, { headers: apiHeaders() });
-    const data = await res.json();
-    userTier = data.tier || 'free';
-    userTierData = data;
-    const badge = $('tierBadge');
-    badge.textContent = data.tier.toUpperCase();
-    badge.className = 'tier-' + data.tier;
-    return data;
-  } catch { return { tier: 'free', features: {} }; }
-}
-
 // ===== DASHBOARD =====
 async function loadDashboard() {
   try {
-    const [cotizRes, tierData] = await Promise.all([
-      fetch('/api/cotizaciones'),
-      checkTier(),
-    ]);
+    const cotizRes = await fetch('/api/cotizaciones');
     cotizacionesCache = await cotizRes.json();
     $('dashBlue').textContent = cotizacionesCache.blue?.sell ? '$' + formatPrice(cotizacionesCache.blue.sell) : '---';
     const gastosRes = await fetch('/api/gastos', { headers: apiHeaders() });
@@ -511,7 +472,7 @@ async function loadDashboard() {
     const vens = await venRes.json();
     const proximo = vens.find(v => { try { const p = v.fecha.split('/'); return new Date(p[2], p[1]-1, p[0]) > new Date(); } catch { return false; } });
     $('dashVencimiento').textContent = proximo ? proximo.concepto + ' (' + proximo.fecha + ')' : '---';
-    $('dashAlertas').textContent = tierData.tier !== 'free' ? '✅ Activas' : '🔒 Premium';
+    $('dashAlertas').textContent = '✅ Activas';
   } catch {}
 }
 
@@ -650,12 +611,9 @@ async function loadGastos() {
     $('gastoResumen').innerHTML = Object.entries(sum.totalPorMoneda || {}).map(([mon,val]) => '<div class="result-row"><span class="label">Total en ' + mon + '</span><span class="value">$' + formatPrice(val) + '</span></div>').join('') +
       (sum.totalEnARS ? '<div class="result-row"><span class="label">💰 Total en ARS</span><span class="value highlight">$' + formatPrice(sum.totalEnARS) + '</span></div>' : '') +
       (sum.total ? '<div class="result-row"><span class="label">📦 Cantidad</span><span class="value">' + sum.total + '</span></div>' : '');
-    const tier = await checkTier();
-    $('gastoLimit').textContent = '(' + (tier.tier === 'free' ? '10/mes' : tier.tier === 'pro' ? '200/mes' : '∞') + ')';
   } catch {}
 }
 async function exportCSV() {
-  if (userTier === 'free') { toast('🔒 Necesitás Premium'); switchTab('planes'); return; }
   try {
     const res = await fetch('/api/export/gastos/csv', { headers:apiHeaders() });
     const blob = await res.blob();
@@ -723,10 +681,6 @@ async function calcularPrestamo() {
 
 // ===== ALERTAS =====
 async function loadAlertas() {
-  if (userTier === 'free') {
-    $('alertasList').innerHTML = '<div class="empty-state"><div class="icon">🔕</div><p>Las alertas automáticas son Premium.</p><button class="btn btn-premium mt-2" onclick="switchTab(\'planes\')">⭐ Activá Premium</button></div>';
-    return;
-  }
   try {
     const res = await fetch('/api/alerts', { headers:apiHeaders() });
     const alerts = await res.json();
@@ -736,38 +690,11 @@ async function loadAlertas() {
   } catch {}
 }
 async function checkAlerts() {
-  if (userTier === 'free') { toast('🔒 Premium requerido'); switchTab('planes'); return; }
   try {
     const res = await fetch('/api/alerts/simular-vencimientos', { method:'POST', headers:apiHeaders() });
     const d = await res.json();
     toast('✅ ' + d.alerts_creadas + ' alertas generadas');
     loadAlertas();
-  } catch { toast('Error'); }
-}
-
-// ===== PLANES =====
-async function loadPlanes() {
-  try {
-    const res = await fetch('/api/payments/planes');
-    const planes = await res.json();
-    const prods = { free: ['Calculadora Monotributo','Cotizaciones en vivo','Tabla de categorías','10 gastos/mes','Sin alertas','Sin exportación'], pro: ['Todo Free','200 gastos/mes','Alertas vencimiento','Recategorización automática','Exportar a CSV','Soporte prioritario'], premium: ['Todo Pro','Gastos ilimitados','Alertas avanzadas','Dólar histórico completo','Todas las herramientas','Soporte 1:1'] };
-    $('planesGrid').innerHTML = planes.map(p => '<div class="plan-card' + (p.id==='pro'?' recomendado':'') + '"><h3>' + (p.id==='free'?'🤝 Free':p.id==='pro'?'⭐ Pro':'👑 Premium') + '</h3>' +
-      '<div class="price">' + (p.id==='free'?'$0':'$'+formatPrice(p.price)) + '</div>' + (p.id!=='free'?'<div style="font-size:.8rem;color:var(--text2)">/mes</div>':'') +
-      '<div class="features">' + prods[p.id].map(f => '<div><span class="check">✓</span> ' + f + '</div>').join('') + '</div>' +
-      (p.id==='free'?'<button class="btn btn-outline w-full" disabled>Plan actual</button>':'<button class="btn btn-'+ (p.id==='pro'?'premium':'primary') +' w-full" onclick="comprarPlan(\''+p.id+'\')">Contratar ' + (p.id==='pro'?'Pro':'Premium') + '</button>') + '</div>').join('');
-  } catch {}
-}
-async function comprarPlan(planId) {
-  try {
-    const res = await fetch('/api/payments/crear-preferencia', { method:'POST', headers:apiHeaders(), body: JSON.stringify({ planId }) });
-    const data = await res.json();
-    if (data.init_point) window.open(data.init_point, '_blank');
-    if (data.status === 'mock') {
-      $('paymentStatus').style.display = 'block';
-      $('paymentStatus').innerHTML = '<h3>✅ Plan ' + planId.toUpperCase() + ' activado</h3><p style="color:var(--text2);margin:8px 0">' + data.message + '</p><button class="btn btn-primary mt-2" onclick="switchTab(\'dashboard\')">Ir al Dashboard</button>';
-      toast('✅ Bienvenido a ' + planId.toUpperCase() + '!');
-      await checkTier();
-    }
   } catch { toast('Error'); }
 }
 
@@ -778,9 +705,9 @@ function loadFAQ() {
     { q: '¿Cómo sé mi categoría?', a: 'Usá la calculadora en la pestaña "Monotributo". Ingresá tus ingresos anuales y te decimos qué categoría te corresponde.' },
     { q: '¿Qué es la recategorización?', a: 'Cambio de categoría cuando tus ingresos varían. Se hace cada 6 meses (enero y julio).' },
     { q: '¿De dónde vienen las cotizaciones?', a: 'Usamos la API pública de Bluelytics. El blue se basa en promedios de cuevas. El oficial del Banco Nación.' },
-    { q: '¿Cómo funciona el límite de gastos?', a: 'Free: 10 gastos/mes. Pro: 200. Premium: ilimitado. Se resetea cada mes.' },
+    { q: '¿Cuánto cuesta?', a: 'Nada. Todas las funciones son gratis e ilimitadas: gastos, alertas, exportación y herramientas.' },
     { q: '¿Qué es el dólar tarjeta?', a: 'Cotización para consumos en el exterior: oficial + 30% PAIS + 35% percepción = oficial × 1.65.' },
-    { q: '¿Cómo pago?', a: 'Usamos MercadoPago. En modo simulación se activa automáticamente.' },
+    { q: '¿Mis datos están seguros?', a: 'Tus datos se guardan de forma privada y solo vos podés verlos con tu cuenta. No compartimos información con terceros.' },
   ];
   $('faqContent').innerHTML = faqs.map(f =>
     '<div class="faq-item"><div class="faq-q" onclick="toggleFAQ(this)">' + f.q + ' <span style="font-size:.7rem">▼</span></div><div class="faq-a">' + f.a + '</div></div>'
@@ -804,7 +731,6 @@ async function loadGuia(tipo) {
 function initApp() {
   hideAuth();
   if (user) $('userEmail').textContent = user.email;
-  checkTier();
   loadDashboard();
   loadCotizaciones();
   loadGastos();

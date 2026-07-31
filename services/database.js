@@ -249,8 +249,8 @@ async function getUserAlerts(userId) {
 async function checkRateLimit(userId, tier) {
   const month = new Date().toISOString().slice(0, 7);
   const row = await getOne('SELECT * FROM rate_limits WHERE user_id = $1 AND month = $2', [userId, month]);
-  const limits = { free: 10, pro: 200, premium: 99999 };
-  const max = limits[tier] || 10;
+  const limits = { free: 99999, pro: 99999, premium: 99999 };
+  const max = limits[tier] || 99999;
   const current = row ? row.expense_count : 0;
   return { allowed: current < max, current, max, remaining: max - current };
 }
