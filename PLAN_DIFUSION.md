@@ -50,16 +50,16 @@ Formatos:
 - Hacker News "Show HN" (inglés, enfocado en el panel de dólar)
 - Publicar en directorios de herramientas: ToolFinder, Bento, There's An App For That
 
-## Paso 5: Crecimiento interno (bucle gratis→pago)
-- Free: 10 gastos/mes (ya está) → al llegar al límite, pantalla de upgrade
-- Pro $3000 / Premium $8000 (ya están definidos)
+## Paso 5: Crecimiento interno (modelo 100% gratis)
+- Todas las funciones son gratis e ilimitadas (gastos, alertas, exportación). El valor es el servicio, no la restricción.
 - Email de bienvenida que muestre las 9 herramientas (recuperar registro)
 - Recordatorio de vencimiento por email/sms (cuando haya emails reales)
-- Referidos: "invitá a un amigo, ganá un mes Premium" (a futuro)
+- Referidos: "invitá a un amigo" (seguimiento opcional, no monetizado)
+- A futuro, si se quiere monetizar sin romper la promesa gratis: donaciones, versión white-label o sponsor — NUNCA quitar funciones gratuitas existentes
 
 ## Paso 6: Métricas a mirar (para saber si funciona)
 - Usuarios registrados por día
-- Conversión a Pro (meta: 1-3%)
+- Usuarios activos por semana (que usan 2+ herramientas)
 - Visitas → registros (meta: >10%)
 - Bounce en la landing
 - Semanal: anotar de dónde vino cada usuario (¿Reddit? ¿Google? ¿Directo?)
