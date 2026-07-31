@@ -2,12 +2,12 @@ const express = require('express');
 const database = require('../services/database');
 const { expenseRateLimit } = require('../services/tier');
 const { getCotizaciones } = require('../services/exchangeScraper');
-const { requireAuth, optionalAuth } = require('../services/auth');
+const { requireAuth } = require('../services/auth');
 
 const router = express.Router();
 const h = require('../services/asyncHandler');
 
-router.get('/', optionalAuth, (req, res) => {
+router.get('/', requireAuth, (req, res) => {
   const limit = parseInt(req.query.limit) || 50;
   const offset = parseInt(req.query.offset) || 0;
   database.getExpenses(req.userId, limit, offset).then(expenses => res.json(expenses));
@@ -31,7 +31,7 @@ router.delete('/:id', requireAuth, h(async (req, res) => {
   res.json({ ok: true });
 }));
 
-router.post('/resumen', optionalAuth, h(async (req, res) => {
+router.post('/resumen', requireAuth, h(async (req, res) => {
   const { month, year } = req.body;
   const m = month || new Date().getMonth() + 1;
   const y = year || new Date().getFullYear();

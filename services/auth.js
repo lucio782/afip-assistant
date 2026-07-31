@@ -26,18 +26,4 @@ function requireAuth(req, res, next) {
   next();
 }
 
-function optionalAuth(req, res, next) {
-  const header = req.headers.authorization;
-  if (header && header.startsWith('Bearer ')) {
-    const decoded = verifyToken(header.slice(7));
-    if (decoded) {
-      req.userId = decoded.id;
-      req.userEmail = decoded.email;
-      req.userTier = decoded.tier || 'free';
-    }
-  }
-  if (!req.userId) req.userId = 'guest';
-  next();
-}
-
-module.exports = { generateToken, verifyToken, requireAuth, optionalAuth };
+module.exports = { generateToken, verifyToken, requireAuth };

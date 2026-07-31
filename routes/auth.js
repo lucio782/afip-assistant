@@ -1,11 +1,20 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const database = require('../services/database');
 const { generateToken, requireAuth } = require('../services/auth');
 const h = require('../services/asyncHandler');
 const router = express.Router();
 
-router.post('/register', h(async (req, res) => {
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).json({ error: 'Demasiados intentos. Esperá 15 minutos e intentá de nuevo.' }),
+});
+
+router.post('/register', authLimiter, h(async (req, res) => {
   try {
     const { email, password, name } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
@@ -24,7 +33,7 @@ router.post('/register', h(async (req, res) => {
   }
 }));
 
-router.post('/login', h(async (req, res) => {
+router.post('/login', authLimiter, h(async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });

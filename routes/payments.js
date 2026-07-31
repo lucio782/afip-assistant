@@ -62,8 +62,11 @@ router.post('/webhook', (req, res) => {
   res.sendStatus(200);
 });
 
-router.get('/status/:userId', h(async (req, res) => {
-  const user = await database.getOrCreateUser(req.params.userId);
+router.get('/status/:userId', requireAuth, h(async (req, res) => {
+  if (req.params.userId !== req.userId) {
+    return res.status(403).json({ error: 'No autorizado' });
+  }
+  const user = await database.getOrCreateUser(req.userId);
   const { TIERS } = require('../services/tier');
   res.json({ userId: user.id, tier: user.tier, subscription_status: user.subscription_status, features: TIERS[user.tier] || TIERS.free });
 }));
