@@ -37,7 +37,7 @@ router.post('/crear-preferencia', requireAuth, h(async (req, res) => {
   try {
     const preference = {
       items: [{
-        title: `AFIP Assistant - Plan ${plan.name}`,
+        title: `ARCA Assistant - Plan ${plan.name}`,
         unit_price: plan.price, quantity: 1, currency_id: 'ARS',
       }],
       payer: { email: req.body.email || req.userEmail || 'comprador@email.com' },

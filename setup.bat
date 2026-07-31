@@ -2,7 +2,7 @@
 cd /d "C:\Users\usuario\Documents\AFIPAssistant"
 
 echo ============================================
-echo  Configuracion permanente AFIP Assistant
+echo  Configuracion permanente ARCA Assistant
 echo ============================================
 echo.
 
@@ -31,7 +31,7 @@ echo [OK] Scheduled task created
 
 echo.
 echo ============================================
-echo  AFIP Assistant disponible en:
+echo  ARCA Assistant disponible en:
 echo   http://afip
 echo   http://localhost
 echo ============================================

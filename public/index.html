@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AFIP Assistant — Calculadora de Monotributo, Dólar en vivo y Gastos | Gratis</title>
+<title>ARCA Assistant — Calculadora de Monotributo, Dólar en vivo y Gastos | Gratis</title>
 <meta name="description" content="Calculadora de categoría de Monotributo 2026, dólar blue y oficial en vivo, control de gastos ilimitado, alertas de vencimientos, inflación y sueldo neto. Gratis y sin límites.">
-<meta name="keywords" content="calculadora monotributo 2026, categoria monotributo, recategorizacion, dolares blue hoy, vencimiento monotributo, sueldo neto, inflacion argentina, gastos">
-<meta name="author" content="AFIP Assistant">
+<meta name="keywords" content="calculadora monotributo 2026, categoria monotributo, recategorizacion, dolares blue hoy, vencimiento monotributo, sueldo neto, inflacion argentina, gastos, arca ex afip">
+<meta name="author" content="ARCA Assistant">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0f172a">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="AFIP Assistant">
-<meta property="og:title" content="AFIP Assistant — Monotributo, Dólar y Gastos, gratis">
-<meta property="og:description" content="Calculadora de Monotributo 2026, dólar en vivo, gastos ilimitados y alertas de vencimientos. 100% gratis.">
+<meta property="og:site_name" content="ARCA Assistant">
+<meta property="og:title" content="ARCA Assistant — Monotributo, Dólar y Gastos, gratis">
+<meta property="og:description" content="Calculadora de Monotributo 2026 (ARCA, ex AFIP), dólar en vivo, gastos ilimitados y alertas de vencimientos. 100% gratis.">
 <meta property="og:url" content="https://afip-assistant.onrender.com/">
 <meta property="og:image" content="https://afip-assistant.onrender.com/favicon.svg">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="AFIP Assistant — Monotributo, Dólar y Gastos, gratis">
-<meta name="twitter:description" content="Calculadora de Monotributo 2026, dólar en vivo, gastos ilimitados y alertas de vencimientos. 100% gratis.">
+<meta name="twitter:title" content="ARCA Assistant — Monotributo, Dólar y Gastos, gratis">
+<meta name="twitter:description" content="Calculadora de Monotributo 2026 (ARCA, ex AFIP), dólar en vivo, gastos ilimitados y alertas de vencimientos. 100% gratis.">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -147,7 +147,7 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
 
 <header id="appHeader" style="display:none">
   <div class="header-inner">
-    <div class="logo" onclick="switchTab('dashboard')">🏛️ <span>AFIP</span> Assistant</div>
+    <div class="logo" onclick="switchTab('dashboard')">🏛️ <span>ARCA</span> Assistant</div>
     <div style="display:flex;align-items:center;gap:8px">
       <span id="userEmail" style="font-size:.75rem;color:var(--text2)"></span>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Salir</button>
@@ -383,8 +383,8 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
 </div>
 
 <footer>
-  <div class="brand">🏛️ AFIP Assistant</div>
-  <div>AFIP Assistant no es un sitio oficial de AFIP. Los valores de cuotas, categorías y vencimientos son orientativos y pueden cambiar por disposiciones oficiales.<br>Tus datos son privados y solo los ves vos con tu cuenta.</div>
+  <div class="brand">🏛️ ARCA Assistant</div>
+  <div>ARCA Assistant no es un sitio oficial de ARCA (ex AFIP). Los valores de cuotas, categorías y vencimientos son orientativos y pueden cambiar por disposiciones oficiales.<br>Tus datos son privados y solo los ves vos con tu cuenta.</div>
 </footer>
 
 <script>
@@ -415,7 +415,7 @@ function hideAuth() {
 }
 function renderLogin() {
   $('authContent').innerHTML = `
-    <h2>🏛️ AFIP Assistant</h2>
+    <h2>🏛️ ARCA Assistant</h2>
     <p class="sub">Tu asistente financiero personal para Argentina</p>
     <div class="form-group"><label>Email</label><input id="loginEmail" type="email" placeholder="tu@email.com"></div>
     <div class="form-group"><label>Contraseña</label><input id="loginPass" type="password" placeholder="••••••"></div>

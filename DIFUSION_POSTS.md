@@ -1,4 +1,4 @@
-# Borradores de difusión — AFIP Assistant
+# Borradores de difusión — ARCA Assistant
 
 Copiá y pegá. NO spamees: 1 post por comunidad, respondé todos los comentarios, esperá días entre uno y otro.
 
@@ -7,7 +7,7 @@ Copiá y pegá. NO spamees: 1 post por comunidad, respondé todos los comentario
 **Título:** Hice una calculadora de Monotributo 2026 gratis (y va con dólar blue y control de gastos)
 
 **Cuerpo:**
-Hola gente, les comparto algo que estuve armando para monotributistas y gente que arranca con AFIP: **AFIP Assistant** (https://afip-assistant.onrender.com).
+Hola gente, les comparto algo que estuve armando para monotributistas y gente que arranca con ARCA (ex AFIP): **ARCA Assistant** (https://afip-assistant.onrender.com).
 
 Qué hace:
 - Te dice tu categoría de Monotributo según ingresos, superficie, energía y alquiler (tabla 2026 actualizada)
@@ -19,7 +19,7 @@ Qué hace:
 
 Es **100% gratis y sin límites** (no hay versión paga ni planes). Los datos se guardan por cuenta y son privados.
 
-No es un sitio oficial de AFIP: los valores son orientativos, pero uso las tablas vigentes.
+No es un sitio oficial de ARCA (ex AFIP): los valores son orientativos, pero uso las tablas vigentes.
 
 Si les sirve, genial; si encuentran algo que no funciona o falta, me dicen y lo arreglo. Cualquier crítica constructiva es bienvenida 🙏
 

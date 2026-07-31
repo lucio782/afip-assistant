@@ -49,7 +49,7 @@ app.use((err, req, res, next) => {
 
 app.get('/api/status', (req, res) => {
   res.json({
-    ok: true, name: 'AFIP Assistant', version: '2.0.0',
+    ok: true, name: 'ARCA Assistant', version: '2.0.0',
     mode: process.env.DATABASE_URL ? 'produccion' : 'desarrollo',
     uptime: process.uptime(),
     endpoints: {
@@ -86,7 +86,7 @@ process.on('uncaughtException', (err) => {
 database.init().then(() => {
   startAutoSave();
   app.listen(PORT, HOST, () => {
-    console.log(`AFIP Assistant v2 corriendo en http://localhost:${PORT}`);
+    console.log(`ARCA Assistant v2 corriendo en http://localhost:${PORT}`);
     console.log(`Modo: ${process.env.DATABASE_URL ? 'produccion (PostgreSQL)' : 'desarrollo (SQLite)'}`);
     console.log(`MP: ${process.env.MP_ACCESS_TOKEN ? 'real' : 'simulado'}`);
   });

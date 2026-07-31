@@ -1,4 +1,4 @@
-# 🏛️ AFIP Assistant
+# 🏛️ ARCA Assistant
 
 Tu asistente financiero gratuito para Argentina. Calculadora de **Monotributo**, **dólar en vivo**, **control de gastos**, **alertas de vencimientos**, **inflación**, **préstamos** y **sueldos** — todo en una sola app, sin costo y sin registros pagos.
 
@@ -14,7 +14,7 @@ Tu asistente financiero gratuito para Argentina. Calculadora de **Monotributo**,
 - 🔔 **Alertas inteligentes**: vencimientos de Monotributo, períodos de recategorización y movimientos del dólar.
 - 📈 **Herramientas**: calculadora de inflación, simulador de préstamos y conversor de monedas.
 - 💼 **Sueldos**: cálculo de sueldo neto con descuentos, aguinaldo y cargas patronales.
-- ❓ **Guías y FAQ**: explicaciones pensadas para quienes recién empiezan con AFIP.
+- ❓ **Guías y FAQ**: explicaciones pensadas para quienes recién empiezan con ARCA (ex AFIP).
 
 ## 🚀 Stack
 
@@ -93,4 +93,4 @@ curl -H "x-admin-key: TU_CLAVE" https://tu-dominio.com/api/metrics
 
 ## 📄 Licencia y aviso
 
-AFIP Assistant **no es un sitio oficial de AFIP**. Los valores de cuotas, categorías y vencimientos son orientativos y pueden cambiar por disposiciones oficiales. Verificá siempre la información en fuentes oficiales.
+ARCA Assistant **no es un sitio oficial de ARCA (ex AFIP)**. Los valores de cuotas, categorías y vencimientos son orientativos y pueden cambiar por disposiciones oficiales. Verificá siempre la información en fuentes oficiales.

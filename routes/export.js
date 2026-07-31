@@ -13,7 +13,7 @@ router.get('/gastos/csv', requireAuth, requireTier('export'), h(async (req, res)
     `"${e.date}","${(e.description || '').replace(/"/g, '""')}","${e.category}","${e.currency}",${e.amount}`
   ).join('\n');
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename=gastos_afip.csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=gastos_arca.csv');
   res.send('\uFEFF' + headers + rows);
 }));
 

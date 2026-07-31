@@ -1,11 +1,11 @@
-# Plan de Difusión — AFIP Assistant
+# Plan de Difusión — ARCA Assistant
 
-Objetivo: convertir AFIP Assistant en la herramienta gratuita de referencia para monotributistas argentinos. Todo gratis, sin pagar publicidad.
+Objetivo: convertir ARCA Assistant en la herramienta gratuita de referencia para monotributistas argentinos. Todo gratis, sin pagar publicidad.
 
 ## Público objetivo
 - Monotributistas (2.4M en Argentina) y "blanqueados" recientes
 - Freelancers, diseñadores, programadores, vendedores por MercadoLibre
-- Profesionales que recién arrancan y no entienden AFIP
+- Profesionales que recién arrancan y no entienden ARCA (ex AFIP)
 - Gente que a la hora de facturar entra en pánico
 
 ## Mensaje clave (para todo)

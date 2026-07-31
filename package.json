@@ -1,7 +1,7 @@
 {
   "name": "afip-assistant",
   "version": "1.0.0",
-  "description": "Asistente AFIP + Multimoneda — Monotributo, dólares, inflación, gastos",
+  "description": "Asistente ARCA (ex AFIP) + Multimoneda — Monotributo, dólares, inflación, gastos",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
