@@ -125,6 +125,19 @@ async function api(method, path, body, auth) {
   r = await api('GET', '/api/status');
   check('api/status 200', r.status === 200);
 
+  console.log('\n== MÉTRICAS (opcional) ==');
+  const adminKey = process.env.ADMIN_KEY;
+  if (adminKey) {
+    r = await api('GET', '/api/metrics');
+    check('metrics sin key 401', r.status === 401);
+
+    const res2 = await fetch(BASE + '/api/metrics', { headers: { 'x-admin-key': adminKey } });
+    const j2 = await res2.json();
+    check('metrics con key 200', res2.status === 200 && typeof j2.usuarios === 'number' && typeof j2.visitas?.total === 'number', JSON.stringify(j2).slice(0, 100));
+  } else {
+    console.log('  SKIP (definí ADMIN_KEY para probar métricas)');
+  }
+
   console.log('\nRESULTADO: ' + passed + ' OK, ' + failed + ' FAIL');
   process.exit(failed ? 1 : 0);
 })().catch(e => { console.error('ERROR CRASH:', e.message); process.exit(2); });

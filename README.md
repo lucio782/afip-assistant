@@ -50,6 +50,7 @@ npm start
 | `DATABASE_URL` | No (dev) | Connection string de PostgreSQL |
 | `JWT_SECRET` | Sí (prod) | Secreto para firmar tokens. Generar uno aleatorio. |
 | `MP_ACCESS_TOKEN` | No | Token de Mercado Pago (a futuro) |
+| `ADMIN_KEY` | No | Clave para consultar `/api/metrics` (header `x-admin-key`) |
 
 > ⚠️ **`JWT_SECRET` es obligatorio en producción.** Sin él, el servidor usa un secreto de desarrollo inseguro.
 
@@ -79,6 +80,15 @@ GET  /api/export/gastos/csv | /monotributo/resumen
 GET/POST /api/alerts
 POST /api/sueldos/calcular
 POST /api/tools/inflacion/calcular | /prestamo/calcular
+GET  /api/metrics        (requiere header `x-admin-key` = ADMIN_KEY)
+```
+
+## 📊 Métricas de uso
+
+`GET /api/metrics` devuelve usuarios registrados, gastos, alertas, visitas (hoy/7 días/total) y usuarios activos de los últimos 7 días. Requiere el header `x-admin-key` con el valor de la variable `ADMIN_KEY`.
+
+```bash
+curl -H "x-admin-key: TU_CLAVE" https://tu-dominio.com/api/metrics
 ```
 
 ## 📄 Licencia y aviso
