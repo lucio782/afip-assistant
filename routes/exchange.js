@@ -17,11 +17,11 @@ router.get('/', async (req, res) => {
 
     // Persist to DB for historical tracking
     const today = new Date().toISOString().split('T')[0];
-    if (cotizaciones.blue?.buy) database.saveExchangeRate(today, 'blue', cotizaciones.blue.buy, cotizaciones.blue.sell);
-    if (cotizaciones.oficial?.buy) database.saveExchangeRate(today, 'oficial', cotizaciones.oficial.buy, cotizaciones.oficial.sell);
-    if (cotizaciones.tarjeta?.value) database.saveExchangeRate(today, 'tarjeta', cotizaciones.tarjeta.value, null);
-    if (cotizaciones.mep?.value) database.saveExchangeRate(today, 'mep', cotizaciones.mep.value, null);
-    if (cotizaciones.ccl?.value) database.saveExchangeRate(today, 'ccl', cotizaciones.ccl.value, null);
+    if (cotizaciones.blue?.buy) await database.saveExchangeRate(today, 'blue', cotizaciones.blue.buy, cotizaciones.blue.sell);
+    if (cotizaciones.oficial?.buy) await database.saveExchangeRate(today, 'oficial', cotizaciones.oficial.buy, cotizaciones.oficial.sell);
+    if (cotizaciones.tarjeta?.value) await database.saveExchangeRate(today, 'tarjeta', cotizaciones.tarjeta.value, null);
+    if (cotizaciones.mep?.value) await database.saveExchangeRate(today, 'mep', cotizaciones.mep.value, null);
+    if (cotizaciones.ccl?.value) await database.saveExchangeRate(today, 'ccl', cotizaciones.ccl.value, null);
 
     res.json(cotizaciones);
   } catch (err) {
@@ -32,8 +32,8 @@ router.get('/', async (req, res) => {
 
 router.get('/historicos', async (req, res) => {
   try {
-    const histBlue = database.getExchangeHistory('blue', 7);
-    const histOficial = database.getExchangeHistory('oficial', 7);
+    const histBlue = await database.getExchangeHistory('blue', 7);
+    const histOficial = await database.getExchangeHistory('oficial', 7);
 
     if (histBlue.length > 0) {
       // Build combined history from DB

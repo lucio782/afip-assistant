@@ -10,11 +10,11 @@ router.post('/register', async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
     if (password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
 
-    const existing = database.getUserByEmail(email);
+    const existing = await database.getUserByEmail(email);
     if (existing) return res.status(409).json({ error: 'Ya existe una cuenta con ese email' });
 
     const password_hash = await bcrypt.hash(password, 10);
-    const user = database.createUser({ email, password_hash, name: name || email.split('@')[0] });
+    const user = await database.createUser({ email, password_hash, name: name || email.split('@')[0] });
     const token = generateToken(user);
 
     res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, tier: user.tier } });
@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
 
-    const user = database.getUserByEmail(email);
+    const user = await database.getUserByEmail(email);
     if (!user) return res.status(401).json({ error: 'Email o contraseña incorrectos' });
 
     const valid = await bcrypt.compare(password, user.password_hash);
@@ -41,8 +41,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/me', requireAuth, (req, res) => {
-  const user = database.getUser(req.userId);
+router.get('/me', requireAuth, async (req, res) => {
+  const user = await database.getUser(req.userId);
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
   res.json({ id: user.id, email: user.email, name: user.name, tier: user.tier, subscription_status: user.subscription_status });
 });
