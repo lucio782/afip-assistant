@@ -278,7 +278,7 @@ async function getMetrics() {
       UNION
       SELECT DISTINCT user_id FROM alerts WHERE created_at >= NOW() - INTERVAL '7 days'
     ) t`;
-    visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= CURRENT_DATE - INTERVAL '7 days'";
+    visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= to_char(CURRENT_DATE - INTERVAL '7 days', 'YYYY-MM-DD')";
     visitasTotalSql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits";
   } else {
     usuariosHoySql = "SELECT COUNT(*) AS n FROM users WHERE date(created_at) = date('now')";
