@@ -17,7 +17,6 @@ async function initPostgres(connectionString) {
   const { Pool } = require('pg');
   db = new Pool({ connectionString, max: 20, idleTimeoutMillis: 30000 });
 
-  // Test connection
   const client = await db.connect();
   try {
     await client.query(`CREATE TABLE IF NOT EXISTS users (
@@ -48,6 +47,13 @@ async function initPostgres(connectionString) {
       last_reset DATE DEFAULT CURRENT_DATE,
       PRIMARY KEY (user_id, month)
     )`);
+    // Migrations: add missing columns on existing tables
+    const { rows } = await client.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'users'`);
+    const cols = rows.map(r => r.column_name);
+    if (!cols.includes('password_hash')) await client.query(`ALTER TABLE users ADD COLUMN password_hash TEXT DEFAULT ''`);
+    if (!cols.includes('email')) await client.query(`ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''`);
+    if (!cols.includes('tier')) await client.query(`ALTER TABLE users ADD COLUMN tier TEXT DEFAULT 'free'`);
+    if (!cols.includes('name')) await client.query(`ALTER TABLE users ADD COLUMN name TEXT DEFAULT ''`);
   } finally {
     client.release();
   }
@@ -94,6 +100,17 @@ async function initSQLite() {
     last_reset TEXT DEFAULT (date('now')),
     PRIMARY KEY (user_id, month)
   )`);
+  // Migrations: add missing columns on existing tables
+  try {
+    const cols = [];
+    const stmt = db.prepare('PRAGMA table_info(users)');
+    while (stmt.step()) cols.push(stmt.getAsObject().name);
+    stmt.free();
+    if (!cols.includes('password_hash')) db.run("ALTER TABLE users ADD COLUMN password_hash TEXT DEFAULT ''");
+    if (!cols.includes('email')) db.run("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''");
+    if (!cols.includes('tier')) db.run("ALTER TABLE users ADD COLUMN tier TEXT DEFAULT 'free'");
+    if (!cols.includes('name')) db.run("ALTER TABLE users ADD COLUMN name TEXT DEFAULT ''");
+  } catch (e) { console.error('Migración de schema falló:', e.message); }
   save();
   console.log('SQLite conectado');
   return db;
