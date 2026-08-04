@@ -70,3 +70,59 @@ Si te sirve, guardalo y compartilo con otro monotributista 🙌
 - Respondé TODOS los comentarios y mensajes (es lo que da alcance)
 - Siempre cerrá con el link en bio, nunca pegues links en comentarios
 - La página es gratis: NO vendas nada todavía. Primero audiencia.
+
+## Contenido SEMANA 1 (3 posts listos)
+
+### Post Lunes — Tip de Monotributo
+
+**Idea visual:** portada "¿Cuándo tengo que recategorizarme?" + captura del calendario de vencimientos de la app.
+
+**Texto:**
+```
+¿Sabías que el Monotributo se recategoriza 2 veces al año?
+
+Julio y enero: ARCA evalúa tus ingresos, alquiler, superficie y consumo eléctrico de los últimos 12 meses.
+
+Si facturaste más de lo que corresponde a tu categoría, te van a recategorizar automáticamente... pero puede que te convenga hacerlo vos antes y elegir bien.
+
+Mi herramienta gratis te dice tu categoría y te avisa cuándo vence cada cosa → link en bio 🧮
+
+Guardá el post para cuando te toque.
+```
+
+### Post Miércoles — Dólar en vivo
+
+**Idea visual:** captura del gráfico de dólar blue de la app + arrow al precio actual.
+
+**Texto:**
+```
+Dólar hoy 🇦🇷
+
+Actualizado en vivo, sin recargar la página:
+💵 Blue
+🏦 Oficial
+💳 Tarjeta
+📈 MEP y CCL
+
+Además de la calculadora de Monotributo, en mi página gratis tenés el dólar siempre a mano → link en bio
+
+¿En qué dólar venís operando? Contame 👇
+```
+
+### Post Viernes — Pregunta frecuente
+
+**Idea visual:** formato "Pregunta → Respuesta" (Q&A) con screenshot de la calculadora.
+
+**Texto:**
+```
+Pregunta de un usuario de esta semana:
+
+"¿Qué gastos cuentan para la categoría del Monotributo?"
+
+Respuesta corta: en Monotributo NO se deducen gastos como en el régimen general. Tu categoría depende de tus INGRESOS BRUTOS del último año, el alquiler, la superficie y el consumo eléctrico.
+
+👉 Mi calculadora gratis hace ese cálculo por vos: link en bio
+
+¿Tenés otra duda? Dejala en comentarios y la respondo en el próximo post.
+```
+
