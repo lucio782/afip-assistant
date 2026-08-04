@@ -7,7 +7,7 @@ Copiá y pegá. NO spamees: 1 post por comunidad, respondé todos los comentario
 **Título:** Hice una calculadora de Monotributo 2026 gratis (y va con dólar blue y control de gastos)
 
 **Cuerpo:**
-Hola gente, les comparto algo que estuve armando para monotributistas y gente que arranca con ARCA (ex AFIP): **ARCA Assistant** (https://afip-assistant.onrender.com).
+Hola gente, les comparto algo que estuve armando para monotributistas y gente que arranca con ARCA (ex AFIP): **ARCA Assistant** (https://calculararca.duckdns.org).
 
 Qué hace:
 - Te dice tu categoría de Monotributo según ingresos, superficie, energía y alquiler (tabla 2026 actualizada)
@@ -32,11 +32,11 @@ Si les sirve, genial; si encuentran algo que no funciona o falta, me dicen y lo 
 ## 3) Facebook — grupos de "Monotributo Argentina", "Emprendedores", "Cuentapropistas"
 
 **Texto:**
-¿No sabés en qué categoría de Monotributo estás? ¿Cuándo vence el pago? Te comparto una herramienta gratuita que hice: entrás tus ingresos y te dice tu categoría 2026, cuánto pagás y cuándo vence. También tiene dólar en vivo y registro de gastos. 100% gratis y sin límites → https://afip-assistant.onrender.com
+¿No sabés en qué categoría de Monotributo estás? ¿Cuándo vence el pago? Te comparto una herramienta gratuita que hice: entrás tus ingresos y te dice tu categoría 2026, cuánto pagás y cuándo vence. También tiene dólar en vivo y registro de gastos. 100% gratis y sin límites → https://calculararca.duckdns.org
 
 ## 4) X/Twitter — hilo corto
 
-**Post 1:** Calculadora de Monotributo 2026 gratis: sabé tu categoría, cuánto pagás y cuándo vence en segundos. 🇦🇷 → https://afip-assistant.onrender.com
+**Post 1:** Calculadora de Monotributo 2026 gratis: sabé tu categoría, cuánto pagás y cuándo vence en segundos. 🇦🇷 → https://calculararca.duckdns.org
 **Post 2:** Además: dólar blue en vivo, gastos ilimitados, alertas de vencimiento, sueldo neto e inflación. Todo gratis, sin planes ni límites.
 
 ## 5) LinkedIn — artículo corto

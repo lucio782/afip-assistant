@@ -4,7 +4,7 @@ Tu asistente financiero gratuito para Argentina. Calculadora de **Monotributo**,
 
 > **100% gratis e ilimitado.** Gastos, alertas y exportación incluidos para todos los usuarios.
 
-**Live:** [https://afip-assistant.onrender.com](https://afip-assistant.onrender.com)
+**Live:** [https://calculararca.duckdns.org](https://calculararca.duckdns.org)
 
 ## ✨ Funciones
 
