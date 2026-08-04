@@ -125,6 +125,25 @@ async function api(method, path, body, auth) {
   r = await api('GET', '/api/status');
   check('api/status 200', r.status === 200);
 
+  console.log('\n== RESEÑAS ==');
+  r = await api('GET', '/api/reviews');
+  check('listar reseñas 200 (público)', r.status === 200 && Array.isArray(r.json), r.text.slice(0, 100));
+
+  r = await api('POST', '/api/reviews', { rating: 5, comment: 'Muy buena herramienta' });
+  check('reseña sin token 401', r.status === 401);
+
+  r = await api('POST', '/api/reviews', { rating: 5, comment: 'Muy buena herramienta' }, true);
+  check('crear reseña 201', r.status === 201 && r.json.rating === 5, r.text.slice(0, 100));
+
+  r = await api('POST', '/api/reviews', { rating: 99, comment: 'invalida' }, true);
+  check('reseña rating inválido 400', r.status === 400);
+
+  r = await api('GET', '/api/reviews');
+  check('reseña visible en la lista', r.status === 200 && r.json.length > 0, r.text.slice(0, 100));
+
+  r = await api('DELETE', '/api/reviews/inexistente', null, true);
+  check('borrar reseña inexistente 404', r.status === 404);
+
   console.log('\n== MÉTRICAS (opcional) ==');
   const adminKey = process.env.ADMIN_KEY;
   if (adminKey) {

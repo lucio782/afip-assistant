@@ -50,6 +50,15 @@ async function initPostgres(connectionString) {
     await client.query(`CREATE TABLE IF NOT EXISTS visits (
       date TEXT PRIMARY KEY, count INTEGER DEFAULT 0
     )`);
+    await client.query(`CREATE TABLE IF NOT EXISTS visitors (
+      date TEXT NOT NULL, vv TEXT NOT NULL,
+      PRIMARY KEY (date, vv)
+    )`);
+    await client.query(`CREATE TABLE IF NOT EXISTS reviews (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT DEFAULT '',
+      rating INTEGER DEFAULT 5, comment TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT NOW()
+    )`);
     // Migrations: add missing columns on existing tables
     const { rows } = await client.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'users'`);
     const cols = rows.map(r => r.column_name);
@@ -105,6 +114,15 @@ async function initSQLite() {
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS visits (
     date TEXT PRIMARY KEY, count INTEGER DEFAULT 0
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS visitors (
+    date TEXT NOT NULL, vv TEXT NOT NULL,
+    PRIMARY KEY (date, vv)
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS reviews (
+    id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT DEFAULT '',
+    rating INTEGER DEFAULT 5, comment TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
   )`);
   // Migrations: add missing columns on existing tables
   try {
@@ -252,14 +270,39 @@ async function getUserAlerts(userId) {
 }
 
 // ===== MÉTRICAS =====
-async function incrementVisits() {
+async function incrementVisits(vv = 'anon') {
   const today = new Date().toISOString().split('T')[0];
   if (isPostgres) {
+    await query('INSERT INTO visitors (date, vv) VALUES ($1, $2) ON CONFLICT DO NOTHING', [today, vv]);
     await query('INSERT INTO visits (date, count) VALUES ($1, 1) ON CONFLICT (date) DO UPDATE SET count = visits.count + 1', [today]);
   } else {
+    await query('INSERT OR IGNORE INTO visitors (date, vv) VALUES ($1, $2)', [today, vv]);
     await query('INSERT OR IGNORE INTO visits (date, count) VALUES ($1, 1)', [today]);
     await query('UPDATE visits SET count = count + 1 WHERE date = $1', [today]);
   }
+}
+
+// ===== RESEÑAS =====
+async function addReview(userId, name, rating, comment) {
+  const id = uuidv4();
+  await query('INSERT INTO reviews (id, user_id, name, rating, comment) VALUES ($1, $2, $3, $4, $5)', [id, userId, name, rating, comment]);
+  return getReview(id);
+}
+
+async function getReview(id) {
+  return getOne('SELECT * FROM reviews WHERE id = $1', [id]);
+}
+
+async function getReviews(limit = 50) {
+  return query('SELECT * FROM reviews ORDER BY created_at DESC LIMIT $1', [limit]);
+}
+
+async function getReviewsByUser(userId) {
+  return query('SELECT * FROM reviews WHERE user_id = $1', [userId]);
+}
+
+async function deleteReview(id) {
+  await query('DELETE FROM reviews WHERE id = $1', [id]);
 }
 
 async function getMetrics() {
@@ -271,6 +314,7 @@ async function getMetrics() {
   };
 
   let usuariosHoySql, activosSql, visitasUltimos7Sql, visitasTotalSql;
+  let unicosHoySql, unicos7Sql, unicosTotalSql;
   if (isPostgres) {
     usuariosHoySql = "SELECT COUNT(*) AS n FROM users WHERE created_at::date = CURRENT_DATE";
     activosSql = `SELECT COUNT(*) AS n FROM (
@@ -280,6 +324,9 @@ async function getMetrics() {
     ) t`;
     visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= to_char(CURRENT_DATE - INTERVAL '7 days', 'YYYY-MM-DD')";
     visitasTotalSql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits";
+    unicosHoySql = "SELECT COUNT(*) AS n FROM visitors WHERE date = $1";
+    unicos7Sql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors WHERE date >= to_char(CURRENT_DATE - INTERVAL '7 days', 'YYYY-MM-DD')) t";
+    unicosTotalSql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors) t";
   } else {
     usuariosHoySql = "SELECT COUNT(*) AS n FROM users WHERE date(created_at) = date('now')";
     activosSql = `SELECT COUNT(*) AS n FROM (
@@ -289,6 +336,9 @@ async function getMetrics() {
     ) t`;
     visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= date('now', '-7 days')";
     visitasTotalSql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits";
+    unicosHoySql = "SELECT COUNT(*) AS n FROM visitors WHERE date = $1";
+    unicos7Sql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors WHERE date >= date('now', '-7 days')) t";
+    unicosTotalSql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors) t";
   }
 
   const visitsHoy = await count("SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date = $1", [today]);
@@ -302,6 +352,11 @@ async function getMetrics() {
     registradosHoy: await count(usuariosHoySql),
     activosUltimos7Dias: await count(activosSql),
     visitas: { hoy: visitsHoy, ultimos7Dias: ultimos7, total },
+    visitantesUnicos: {
+      hoy: await count(unicosHoySql, [today]),
+      ultimos7Dias: await count(unicos7Sql),
+      total: await count(unicosTotalSql),
+    },
   };
 }
 
@@ -332,4 +387,5 @@ module.exports = { init, save, close,
   saveExchangeRate, getExchangeHistory,
   createAlert, getUserAlerts,
   checkRateLimit, incrementRateLimit,
-  incrementVisits, getMetrics };
+  incrementVisits, getMetrics,
+  addReview, getReview, getReviews, getReviewsByUser, deleteReview };

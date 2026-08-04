@@ -13,8 +13,15 @@ app.set('trust proxy', 1);
 app.use(cors());
 app.use(compression());
 app.use(express.json({ limit: '1mb' }));
+const crypto = require('crypto');
 app.use((req, res, next) => {
-  if (req.path === '/' || req.path === '/index.html') database.incrementVisits().catch(() => {});
+  if (req.path === '/' || req.path === '/index.html') {
+    const cookie = req.headers.cookie || '';
+    const m = cookie.match(/(?:^|;\s*)vv=([^;]+)/);
+    const vv = m ? m[1] : crypto.randomBytes(8).toString('hex');
+    if (!m) res.setHeader('Set-Cookie', `vv=${vv}; Path=/; Max-Age=31536000; SameSite=Lax`);
+    database.incrementVisits(vv).catch(() => {});
+  }
   next();
 });
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -41,6 +48,7 @@ app.use('/api/export', require('./routes/export'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/tools', require('./routes/tools'));
 app.use('/api/metrics', require('./routes/metrics'));
+app.use('/api/reviews', require('./routes/reviews'));
 
 app.use((err, req, res, next) => {
   console.error('Error no controlado:', err.message);

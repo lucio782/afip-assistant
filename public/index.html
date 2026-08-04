@@ -139,6 +139,15 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .auth-box .sub{text-align:center;color:var(--text2);font-size:.85rem;margin-bottom:20px}
 .auth-switch{text-align:center;margin-top:16px;font-size:.85rem;color:var(--text2)}
 .auth-switch a{cursor:pointer;color:var(--primary)}
+.landing-testimonials{max-width:1000px;margin:32px auto 0;width:100%}
+.landing-testimonials h3{font-size:1rem;margin-bottom:16px;color:var(--text)}
+.review-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.review-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:.8rem;line-height:1.5}
+.review-card .stars{color:var(--accent);font-size:.9rem;margin-bottom:4px}
+.review-card .rname{font-weight:700;color:var(--text);font-size:.75rem}
+.review-card .rdate{color:var(--text2);font-size:.68rem;margin-left:6px}
+.review-card .rtext{color:var(--text2);margin-top:6px;font-size:.78rem}
+@media(max-width:860px){.review-list{grid-template-columns:1fr}}
 footer{max-width:1200px;margin:24px auto 16px;padding:16px;text-align:center;color:var(--text2);font-size:.75rem;line-height:1.6}
 footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4px}
 </style>
@@ -162,6 +171,7 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
       <a data-tab="herramientas">🔧 Herramientas</a>
       <a data-tab="sueldos">💼 Sueldos</a>
       <a data-tab="alertas">🔔 Alertas</a>
+      <a data-tab="opiniones">⭐ Opiniones</a>
       <a data-tab="ayuda">❓ Ayuda</a>
     </div>
   </div>
@@ -194,6 +204,10 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
     <div class="auth-box" id="authBox">
       <div id="authContent"></div>
     </div>
+  </div>
+  <div class="landing-testimonials">
+    <h3>⭐ Lo que dicen los usuarios</h3>
+    <div id="landingReviews" class="review-list">Cargando opiniones...</div>
   </div>
 </section>
 
@@ -380,6 +394,34 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
   </div>
 </section>
 
+<!-- ===== OPINIONES ===== -->
+<section id="section-opiniones" class="section">
+  <div class="card">
+    <h2>⭐ Dejá tu opinión</h2>
+    <p style="color:var(--text2);font-size:.8rem;margin-bottom:16px">Contanos qué te parece ARCA Assistant. Tu opinión ayuda a que mejore y a que más gente confíe.</p>
+    <div class="form-group">
+      <label>Calificación</label>
+      <select id="reviewRating">
+        <option value="5">★★★★★ (5)</option>
+        <option value="4">★★★★ (4)</option>
+        <option value="3">★★★ (3)</option>
+        <option value="2">★★ (2)</option>
+        <option value="1">★ (1)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Tu opinión</label>
+      <textarea id="reviewComment" rows="3" placeholder="¿Qué te pareció? (3 a 500 caracteres)"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="submitReview()">Publicar opinión</button>
+    <div id="reviewMsg" style="font-size:.8rem;margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2>📣 Todas las opiniones</h2>
+    <div id="allReviews" class="review-list">Cargando...</div>
+  </div>
+</section>
+
 </div>
 
 <footer>
@@ -409,6 +451,7 @@ function showAuth() {
   $('appHeader').style.display = 'none';
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   renderLogin();
+  loadLandingReviews();
 }
 function hideAuth() {
   $('auth-section').style.display = 'none';
@@ -465,6 +508,39 @@ async function register() {
   } catch { showAuthError('Error de conexión'); }
 }
 function showAuthError(msg) { const e = $('authError'); e.textContent = msg; e.style.display = 'block'; }
+
+// ===== RESEÑAS =====
+function reviewCardHtml(r) {
+  return '<div class="review-card"><div class="stars">' + '★'.repeat(Math.max(1, Math.min(5, r.rating || 5))) + '</div><div><span class="rname">' + escapeHtml(r.name || 'Usuario') + '</span><span class="rdate">' + escapeHtml(String(r.created_at || '').slice(0, 10)) + '</span></div><div class="rtext">' + escapeHtml(r.comment || '') + '</div></div>';
+}
+async function loadReviewsInto(el, limit) {
+  try {
+    const res = await fetch('/api/reviews' + (limit ? '?limit=' + limit : ''));
+    if (!res.ok) throw new Error('error');
+    const list = await res.json();
+    const elEl = $(el);
+    if (!elEl) return;
+    if (!list.length) { elEl.innerHTML = '<div style="color:var(--text2);font-size:.8rem">Todavía no hay opiniones. ¡Sé el primero en dejar la tuya!</div>'; return; }
+    elEl.innerHTML = list.map(reviewCardHtml).join('');
+  } catch { if ($(el)) $(el).innerHTML = ''; }
+}
+function loadLandingReviews() { loadReviewsInto('landingReviews', 6); }
+function loadAllReviews() { loadReviewsInto('allReviews'); }
+async function submitReview() {
+  const msg = $('reviewMsg');
+  msg.style.color = 'var(--success)';
+  const rating = parseInt($('reviewRating').value);
+  const comment = $('reviewComment').value.trim();
+  if (!comment || comment.length < 3 || comment.length > 500) { msg.style.color = 'var(--danger)'; msg.textContent = 'Escribí una opinión de 3 a 500 caracteres'; return; }
+  try {
+    const res = await fetch('/api/reviews', { method:'POST', headers: apiHeaders(), body: JSON.stringify({ rating, comment }) });
+    const data = await res.json();
+    if (!res.ok) { msg.style.color = 'var(--danger)'; msg.textContent = data.error || 'Error al publicar'; return; }
+    msg.textContent = '¡Gracias por tu opinión!';
+    $('reviewComment').value = '';
+    loadAllReviews();
+  } catch { msg.style.color = 'var(--danger)'; msg.textContent = 'Error de conexión'; }
+}
 function logout() {
   token = null; user = null;
   localStorage.removeItem('afip_token'); localStorage.removeItem('afip_user');
@@ -489,6 +565,7 @@ function switchTab(tab) {
   if (tab === 'herramientas') initHerramientas();
   if (tab === 'ayuda') { loadFAQ(); loadGuia('monotributo'); }
   if (tab === 'monotributo') { loadTablaCategorias(); loadVencimientos(); }
+  if (tab === 'opiniones') loadAllReviews();
 }
 
 document.querySelectorAll('#monoTabs .tab').forEach(t => {
