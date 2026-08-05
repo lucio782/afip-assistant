@@ -32,7 +32,9 @@ Hice una herramienta GRATIS que te lo dice en segundos 👇
 
 🧮 Calculadora de categoría (ingresos, superficie, energía y alquiler)
 📅 Vencimientos y alertas de recategorización
-💵 Dólar blue, oficial, MEP y CCL en vivo
+💵 Dólar blue, oficial, tarjeta, MEP, CCL y mayorista en vivo, con subida/bajada vs el día anterior
+💶 Euro, yen y criptos (BTC, ETH, USDT, SOL)
+📰 Noticias financieras de Argentina, el mundo y el mercado cripto
 💰 Registro de gastos ilimitado con exportación CSV
 📈 Sueldo neto, inflación y préstamos
 
@@ -59,6 +61,54 @@ Si te sirve, guardalo y compartilo con otro monotributista 🙌
 
 **Story 3 — Tip rápido:**
 > ¿Sabías que la recategorización del Monotributo se hace 2 veces al año? Te conviene saber tu categoría antes de que cambie tu facturación 💡
+
+## Respuestas típicas de Instagram (copiar y pegar)
+
+Respondé siempre con estas frases. Regla de oro: nunca pegues un link en comentarios, siempre "link en bio".
+
+**"¿Es gratis?" / "¿Cuánto cuesta?"**
+> Es 100% gratis y sin límites: gastos, alertas, dólar, criptos y noticias. No pedimos tarjeta ni hay plan pago. Todo desde el link en bio 🔗
+
+**"¿Para qué sirve?" / "¿Qué hace?"**
+> Calculadora de categoría de Monotributo, vencimientos, dólar blue/oficial/tarjeta/MEP/CCL en vivo, euro, yen y criptos (BTC, ETH, USDT, SOL), registro de gastos con exportación CSV y noticias del mercado. Todo gratis en el link en bio 🙌
+
+**"¿Es oficial de AFIP/ARCA?" / "¿Ustedes son el gobierno?"**
+> No, no somos un sitio oficial. Es una herramienta independiente hecha por mí (Lucio) para ayudarte a calcular y organizarte. Los datos oficiales están siempre en la página de ARCA.
+
+**"¿Cómo se usa?" / "No me funciona"**
+> Entrá al link en bio, creá tu cuenta gratis (te llega un email con tu clave) y listo. Si tenés algún problema, contame por mensaje privado que lo reviso 😊
+
+**"¿Tengo que pagar para exportar mis gastos?"**
+> No, todo es gratis: registrar gastos, exportarlos a CSV, alertas y la calculadora. Sin límites ni planes.
+
+**"¿El dólar se actualiza solo?"**
+> Sí, se actualiza cada 60 segundos y las noticias cada 5 minutos. Además cada cotización muestra si subió o bajó vs. el día anterior.
+
+**"¿Están mis datos seguros?"**
+> Sí, tus gastos y datos son privados: solo vos los ves con tu cuenta. No compartimos nada con terceros.
+
+**"¿Me podés hacer la categoría?"** (si es algo concreto)
+> La calculadora te la dice en segundos: ponés tus ingresos, alquiler, superficie y consumo eléctrico y te muestra la categoría y cuánto pagás. Probala desde el link en bio 🧮
+
+**"¿Sirve para autónomos / responsables inscriptos?"**
+> Por ahora está enfocada en Monotributo (categoría, cuotas y vencimientos). Si querés, dejame en comentarios qué necesitás y lo tengo en cuenta para próximas versiones.
+
+**Comentario positivo (agradecimiento)**
+> Gracias por el apoyo 🙌 Guardá la página y compartíla con otro monotributista si te sirvió.
+
+**Alguien pide algo que no existe (ej: facturación)**
+> Buena idea 👍 Lo tengo en el roadmap. Mientras tanto podés usar la calculadora de categoría y los vencimientos desde el link en bio.
+
+## Respuestas para preguntas técnicas frecuentes
+
+**"¿Cuál es el dólar tarjeta que muestra?"**
+> El que informa el mercado con los impuestos vigentes. Cada cotización marca si subió o bajó vs el día anterior.
+
+**"¿De dónde sacan los precios de las criptos?"**
+> De CoinGecko, con respaldo automático en Binance si CoinGecko está lento. Es orientativo, no es asesoramiento financiero.
+
+**"¿Los valores del euro/yen están en pesos?"**
+> Sí, todo se muestra en pesos argentinos y en dólares. El conversor te pasa de cualquier moneda (USD, EUR, yen, BTC, ETH, USDT, SOL) a otra.
 
 ## Ideas de contenido semanal (mantiene el perfil vivo)
 
@@ -124,5 +174,24 @@ Respuesta corta: en Monotributo NO se deducen gastos como en el régimen general
 👉 Mi calculadora gratis hace ese cálculo por vos: link en bio
 
 ¿Tenés otra duda? Dejala en comentarios y la respondo en el próximo post.
+```
+
+### Post extra — Criptos y noticias
+
+**Idea visual:** captura de la sección de criptos (BTC/ETH/USDT/SOL) + captura de las noticias del mercado.
+
+**Texto:**
+```
+¿Mirás el mercado en pesos o en dólares? 🇦🇷
+
+En mi página gratis tenés:
+₿ Bitcoin, ETH, USDT y Solana en pesos y en dólares
+📊 Si cada cripto subió o bajó vs ayer
+💱 Conversor entre USD, EUR, yen y criptos
+📰 Noticias de Argentina, el mundo y el mercado cripto, actualizadas solas
+
+Todo gratis, sin cuenta paga → link en bio
+
+El precio de las criptos es orientativo y puede variar. No es asesoramiento financiero.
 ```
 
