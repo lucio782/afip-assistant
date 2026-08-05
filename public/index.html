@@ -147,6 +147,13 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .review-card .rname{font-weight:700;color:var(--text);font-size:.75rem}
 .review-card .rdate{color:var(--text2);font-size:.68rem;margin-left:6px}
 .review-card .rtext{color:var(--text2);margin-top:6px;font-size:.78rem}
+.sub-price{font-size:.68rem;color:var(--text2);margin-top:2px}
+.news-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.news-item:last-child{border-bottom:none}
+.news-item .n-tag{flex-shrink:0;font-size:.7rem;background:var(--primary);color:#fff;padding:2px 8px;border-radius:12px}
+.news-item a{color:var(--text);text-decoration:none;font-size:.85rem;line-height:1.5}
+.news-item a:hover{color:var(--primary)}
+.news-item .n-meta{font-size:.7rem;color:var(--text2);margin-top:2px}
 @media(max-width:860px){.review-list{grid-template-columns:1fr}}
 footer{max-width:1200px;margin:24px auto 16px;padding:16px;text-align:center;color:var(--text2);font-size:.75rem;line-height:1.6}
 footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4px}
@@ -171,6 +178,7 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
       <a data-tab="herramientas">🔧 Herramientas</a>
       <a data-tab="sueldos">💼 Sueldos</a>
       <a data-tab="alertas">🔔 Alertas</a>
+      <a data-tab="noticias">📰 Noticias</a>
       <a data-tab="opiniones">⭐ Opiniones</a>
       <a data-tab="ayuda">❓ Ayuda</a>
     </div>
@@ -278,7 +286,7 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
 <!-- ===== DÓLAR ===== -->
 <section id="section-dolar" class="section">
   <div class="card">
-    <h2>💵 Cotizaciones del dólar en Argentina</h2>
+    <h2>💱 Cotizaciones en Argentina (dólar, euro, yen y criptos)</h2>
     <div class="exchange-grid" id="cotizacionesGrid"></div>
     <div class="chart-wrap"><canvas id="dolarChart"></canvas></div>
     <p style="font-size:.75rem;color:var(--text2);text-align:right" id="dolarTimestamp"></p>
@@ -287,11 +295,28 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
     <h2>💱 Conversor rápido</h2>
     <div class="form-row">
       <div class="form-group"><label>Monto</label><input id="convMonto" type="number" value="1000" oninput="convertirMoneda()" step="any"></div>
-      <div class="form-group"><label>De</label><select id="convDesde" onchange="convertirMoneda()"><option value="USD">USD</option><option value="ARS">ARS</option></select></div>
-      <div class="form-group"><label>A</label><select id="convHasta" onchange="convertirMoneda()"><option value="ARS">ARS</option><option value="USD">USD</option></select></div>
+      <div class="form-group"><label>De</label><select id="convDesde" onchange="convertirMoneda()"><option value="USD">USD</option><option value="EUR">EUR</option><option value="ARS">ARS</option></select></div>
+      <div class="form-group"><label>A</label><select id="convHasta" onchange="convertirMoneda()"><option value="ARS">ARS</option><option value="USD">USD</option><option value="EUR">EUR</option></select></div>
       <div class="form-group"><label>Tipo</label><select id="convTipo" onchange="convertirMoneda()"><option value="blue">Blue</option><option value="oficial">Oficial</option><option value="tarjeta">Tarjeta</option></select></div>
     </div>
     <div id="convResultado" style="text-align:center;padding:16px;font-size:1.5rem;font-weight:700;color:var(--success)">---</div>
+  </div>
+</section>
+
+<!-- ===== NOTICIAS ===== -->
+<section id="section-noticias" class="section">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <h2 style="margin-bottom:0">📰 Noticias financieras y de mercado</h2>
+      <span style="font-size:.72rem;color:var(--text2)" id="newsTimestamp"></span>
+    </div>
+    <div class="tabs" id="newsTabs">
+      <button class="tab active" data-ncat="local">🇦🇷 Argentina</button>
+      <button class="tab" data-ncat="internacional">🌎 Internacional</button>
+      <button class="tab" data-ncat="cripto">🪙 Cripto</button>
+    </div>
+    <div id="newsList" style="margin-top:12px"></div>
+    <p style="font-size:.72rem;color:var(--text2);margin-top:8px">Las noticias se actualizan automáticamente cada 5 minutos. Fuentes: Google News, CNBC y Cointelegraph.</p>
   </div>
 </section>
 
@@ -559,13 +584,14 @@ function switchTab(tab) {
   const navEl = document.querySelector(`[data-tab="${tab}"]`);
   if (navEl) navEl.classList.add('active');
   if (tab === 'dashboard') loadDashboard();
-  if (tab === 'dolar') { loadCotizaciones(); convertirMoneda(); }
+  if (tab === 'dolar') loadCotizaciones();
   if (tab === 'gastos') loadGastos();
   if (tab === 'alertas') loadAlertas();
   if (tab === 'herramientas') initHerramientas();
   if (tab === 'ayuda') { loadFAQ(); loadGuia('monotributo'); }
   if (tab === 'monotributo') { loadTablaCategorias(); loadVencimientos(); }
   if (tab === 'opiniones') loadAllReviews();
+  if (tab === 'noticias') loadNoticias();
 }
 
 document.querySelectorAll('#monoTabs .tab').forEach(t => {
@@ -681,16 +707,24 @@ async function loadCotizaciones() {
 }
 function renderCotizaciones(data) {
   if (!data) return '';
-  return [
-    { type:'Blue', buy:data.blue?.buy, sell:data.blue?.sell, tag:'💵' },
-    { type:'Oficial', buy:data.oficial?.buy, sell:data.oficial?.sell, tag:'🏦' },
-    { type:'Tarjeta', value:data.tarjeta?.value, tag:'💳' },
-    { type:'MEP', value:data.mep?.value, tag:'📊' },
-    { type:'CCL', value:data.ccl?.value, tag:'🌐' },
-  ].map(i => '<div class="exchange-card"><div class="type">' + i.tag + ' ' + i.type + '</div>' +
+  const cards = [
+    { type:'Dólar Blue', buy:data.blue?.buy, sell:data.blue?.sell, tag:'💵' },
+    { type:'Dólar Oficial', buy:data.oficial?.buy, sell:data.oficial?.sell, tag:'🏦' },
+    { type:'Dólar Tarjeta', value:data.tarjeta?.value, tag:'💳' },
+    { type:'Dólar MEP', value:data.mep?.value, tag:'📊' },
+    { type:'Dólar CCL', value:data.ccl?.value, tag:'🌐' },
+    { type:'Euro', value:data.euro?.ars, sub:'USD ' + (data.euro?.usd != null ? data.euro.usd : '—'), tag:'💶' },
+    { type:'Yen (100)', value:data.yen?.ars, sub:'USD ' + (data.yen?.usd != null ? data.yen.usd : '—'), tag:'🇯🇵' },
+    { type:'Bitcoin', value:data.criptos?.bitcoin?.ars, sub:'USD ' + (data.criptos?.bitcoin?.usd != null ? data.criptos.bitcoin.usd : '—'), tag:'₿' },
+    { type:'Ethereum', value:data.criptos?.ethereum?.ars, sub:'USD ' + (data.criptos?.ethereum?.usd != null ? data.criptos.ethereum.usd : '—'), tag:'Ξ' },
+    { type:'USDT', value:data.criptos?.tether?.ars, sub:'USD ' + (data.criptos?.tether?.usd != null ? data.criptos.tether.usd : '—'), tag:'🪙' },
+    { type:'Solana', value:data.criptos?.solana?.ars, sub:'USD ' + (data.criptos?.solana?.usd != null ? data.criptos.solana.usd : '—'), tag:'◎' },
+  ];
+  return cards.map(i => '<div class="exchange-card"><div class="type">' + i.tag + ' ' + i.type + '</div>' +
     (i.buy != null ? '<div class="price buy">Compra $' + formatPrice(i.buy) + '</div>' : '') +
     (i.sell != null ? '<div class="price sell">Venta $' + formatPrice(i.sell) + '</div>' : '') +
-    (i.value != null ? '<div class="price blue">$' + formatPrice(i.value) + '</div>' : '') + '</div>').join('');
+    (i.value != null ? '<div class="price blue">$' + formatPrice(i.value) + '</div>' : '<div class="price">—</div>') +
+    (i.sub ? '<div class="sub-price">' + i.sub + '</div>' : '') + '</div>').join('');
 }
 function convertirMoneda() {
   const monto = parseFloat($('convMonto').value) || 0;
@@ -698,17 +732,56 @@ function convertirMoneda() {
   const hasta = $('convHasta').value;
   const tipo = $('convTipo').value;
   if (!cotizacionesCache || !monto) { $('convResultado').textContent = '---'; return; }
-  let tasa = 1;
-  if (tipo === 'blue') tasa = cotizacionesCache.blue?.sell || 1;
-  else if (tipo === 'oficial') tasa = cotizacionesCache.oficial?.sell || 1;
-  else if (tipo === 'tarjeta') tasa = cotizacionesCache.tarjeta?.value || 1;
-  let resultado;
-  if (desde === 'USD' && hasta === 'ARS') resultado = monto * tasa;
-  else if (desde === 'ARS' && hasta === 'USD') resultado = monto / tasa;
-  else resultado = monto;
-  $('convResultado').innerHTML = (hasta === 'USD' ? 'USD ' : '$ ') + formatPrice(resultado) +
-    '<span style="font-size:.9rem;color:var(--text2);display:block;font-weight:400">1 USD = $' + formatPrice(tasa) + '</span>';
+  const dolar = (tipo === 'blue' ? cotizacionesCache.blue?.sell
+    : tipo === 'oficial' ? cotizacionesCache.oficial?.sell
+    : tipo === 'tarjeta' ? cotizacionesCache.tarjeta?.value
+    : 1) || 1;
+  const eurARS = cotizacionesCache.euro?.ars || (cotizacionesCache.euro?.usd ? cotizacionesCache.euro.usd * dolar : null);
+  let resultado = monto;
+  const base = { USD: dolar, ARS: 1, EUR: eurARS || 1 };
+  if (eurARS) resultado = monto * (base[desde] / base[hasta]);
+  const fmt = (v) => v.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const sym = (c) => c === 'USD' ? 'USD ' : c === 'EUR' ? '€ ' : '$ ';
+  let nota = '';
+  if (desde === 'ARS' && hasta === 'USD') nota = '1 USD = $' + fmt(dolar);
+  else if (desde === 'USD' && hasta === 'ARS') nota = '1 USD = $' + fmt(dolar);
+  else if (eurARS && (desde === 'EUR' || hasta === 'EUR')) nota = '1 EUR = $' + fmt(eurARS) + ' · 1 EUR = USD ' + fmt(eurARS / dolar);
+  else nota = '1 ' + desde + ' = ' + (base[desde] ? fmt(base[desde] / base[hasta]) : '—') + ' ' + hasta;
+  $('convResultado').innerHTML = sym(hasta) + fmt(resultado) +
+    '<span style="font-size:.9rem;color:var(--text2);display:block;font-weight:400">' + nota + '</span>';
 }
+
+// ===== NOTICIAS =====
+let newsCache = null;
+let currentNewsCat = 'local';
+async function loadNoticias() {
+  try {
+    const res = await fetch('/api/news');
+    newsCache = await res.json();
+    if (newsCache.actualizado) $('newsTimestamp').textContent = 'Actualizado: ' + new Date(newsCache.actualizado).toLocaleString('es-AR');
+    renderNews();
+  } catch {}
+}
+function renderNews() {
+  const list = (newsCache && newsCache[currentNewsCat]) || [];
+  if (!list.length) { $('newsList').innerHTML = '<div style="color:var(--text2);font-size:.8rem">No hay noticias disponibles en este momento.</div>'; return; }
+  $('newsList').innerHTML = list.map(n => {
+    let fecha = '';
+    if (n.fecha) { const d = new Date(n.fecha); if (!isNaN(d)) fecha = d.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+    const tag = currentNewsCat === 'local' ? 'AR' : currentNewsCat === 'cripto' ? '₿' : '🌎';
+    return '<div class="news-item"><span class="n-tag">' + tag + '</span><div style="flex:1"><a href="' + n.link + '" target="_blank" rel="noopener">' + escapeHtml(n.titulo) + '</a>' +
+      (n.descripcion ? '<div class="n-meta">' + escapeHtml(n.descripcion) + '</div>' : '') +
+      '<div class="n-meta">' + escapeHtml(n.fuente || '') + (fecha ? ' · ' + fecha : '') + '</div></div></div>';
+  }).join('');
+}
+document.querySelectorAll('#newsTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#newsTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentNewsCat = t.dataset.ncat;
+    renderNews();
+  });
+});
 
 // ===== GASTOS =====
 async function addGasto() {
@@ -835,7 +908,7 @@ function loadFAQ() {
     { q: '¿Qué es el Monotributo?', a: 'Régimen impositivo simplificado argentino para pequeños contribuyentes. Unifica varios impuestos en una sola cuota mensual. Hay 11 categorías (A a K).' },
     { q: '¿Cómo sé mi categoría?', a: 'Usá la calculadora en la pestaña "Monotributo". Ingresá tus ingresos anuales y te decimos qué categoría te corresponde.' },
     { q: '¿Qué es la recategorización?', a: 'Cambio de categoría cuando tus ingresos varían. Se hace cada 6 meses (enero y julio).' },
-    { q: '¿De dónde vienen las cotizaciones?', a: 'Usamos la API pública de Bluelytics. El blue se basa en promedios de cuevas. El oficial del Banco Nación.' },
+    { q: '¿De dónde vienen las cotizaciones?', a: 'Dólar: API pública de Bluelytics. Euro y yen: tipos de cambio internacionales. Criptos: CoinGecko. Todo se actualiza solo cada 60 segundos.' },
     { q: '¿Cuánto cuesta?', a: 'Nada. Todas las funciones son gratis e ilimitadas: gastos, alertas, exportación y herramientas.' },
     { q: '¿Qué es el dólar tarjeta?', a: 'Cotización para consumos en el exterior: oficial + 30% PAIS + 35% percepción = oficial × 1.65.' },
     { q: '¿Mis datos están seguros?', a: 'Tus datos se guardan de forma privada y solo vos podés verlos con tu cuenta. No compartimos información con terceros.' },
@@ -886,6 +959,7 @@ if (token && localStorage.getItem('afip_user')) {
 setInterval(() => {
   if ($('section-dashboard').classList.contains('active')) loadDashboard();
   if ($('section-dolar').classList.contains('active')) loadCotizaciones();
+  if ($('section-noticias').classList.contains('active')) loadNoticias();
 }, 60000);
 </script>
 </body>

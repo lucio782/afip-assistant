@@ -49,6 +49,7 @@ app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/tools', require('./routes/tools'));
 app.use('/api/metrics', require('./routes/metrics'));
 app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/news', require('./routes/news'));
 
 app.use((err, req, res, next) => {
   console.error('Error no controlado:', err.message);
@@ -65,6 +66,7 @@ app.get('/api/status', (req, res) => {
       cotizaciones: '/api/cotizaciones', gastos: '/api/gastos',
       sueldos: '/api/sueldos', pagos: '/api/payments',
       export: '/api/export', alerts: '/api/alerts', tools: '/api/tools',
+      news: '/api/news', reviews: '/api/reviews',
     },
   });
 });
