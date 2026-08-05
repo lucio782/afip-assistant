@@ -2,13 +2,19 @@ const fs = require('fs');
 const path = require('path');
 const MONO_FILE = path.join(__dirname, '..', 'data', 'monotributo.json');
 
-function readJSON(file) {
-  try { if (!fs.existsSync(file)) return null; return JSON.parse(fs.readFileSync(file, 'utf-8')); }
-  catch { return null; }
+let cache = null;
+
+function load() {
+  if (cache) return cache;
+  try {
+    if (!fs.existsSync(MONO_FILE)) return null;
+    cache = JSON.parse(fs.readFileSync(MONO_FILE, 'utf-8'));
+  } catch { cache = null; }
+  return cache;
 }
 
 function getCategorias() {
-  return readJSON(MONO_FILE)?.categories || [];
+  return load()?.categories || [];
 }
 
 function getCategoriaByCode(code) {
@@ -16,7 +22,7 @@ function getCategoriaByCode(code) {
 }
 
 function getAnnualDeductions() {
-  return readJSON(MONO_FILE)?.deductions || {};
+  return load()?.deductions || {};
 }
 
 module.exports = { getCategorias, getCategoriaByCode, getAnnualDeductions };

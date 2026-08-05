@@ -11,16 +11,39 @@ const PORT = config.app.port;
 const HOST = config.app.host;
 
 app.set('trust proxy', 1);
-app.use(cors());
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);
+    const allowed = origin === config.app.url
+      || origin.includes('.duckdns.org')
+      || origin.includes('.onrender.com')
+      || /^http:\/\/localhost(:\d+)?$/.test(origin);
+    cb(null, allowed);
+  },
+}));
 app.use(compression());
 app.use(express.json({ limit: config.app.bodyLimit }));
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'");
+  next();
+});
 const crypto = require('crypto');
 app.use((req, res, next) => {
   if (req.path === '/' || req.path === '/index.html') {
     const cookie = req.headers.cookie || '';
     const m = cookie.match(new RegExp('(?:^|;\\s*)' + config.security.visitorCookie + '=([^;]+)'));
     const vv = m ? m[1] : crypto.randomBytes(8).toString('hex');
-    if (!m) res.setHeader('Set-Cookie', config.security.visitorCookie + '=' + vv + '; Path=/; Max-Age=' + config.security.visitorCookieMaxAge + '; SameSite=Lax');
+    if (!m) {
+      const secure = (req.secure || req.headers['x-forwarded-proto'] === 'https') ? '; Secure' : '';
+      res.setHeader('Set-Cookie', config.security.visitorCookie + '=' + vv + '; Path=/; Max-Age=' + config.security.visitorCookieMaxAge + '; HttpOnly; SameSite=Lax' + secure);
+    }
     database.incrementVisits(vv).catch(() => {});
   }
   next();
@@ -31,13 +54,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
     if (filePath.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
   },
 }));
-
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  next();
-});
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/monotributo', require('./routes/monotributo'));
@@ -53,8 +69,8 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/news', require('./routes/news'));
 
 app.use((err, req, res, next) => {
-  console.error('Error no controlado:', err.message);
-  res.status(500).json({ error: 'Error interno del servidor', detail: err.message });
+  console.error('Error no controlado:', err && err.message);
+  res.status(err && err.statusCode ? err.statusCode : 500).json({ error: 'Error interno del servidor' });
 });
 
 app.get('/api/status', (req, res) => {

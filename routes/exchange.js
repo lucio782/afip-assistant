@@ -56,22 +56,24 @@ async function persist(cot) {
 }
 
 async function buildVariaciones(cot) {
-  const variaciones = {};
-  for (const type of RATE_TYPES) {
-    variaciones[type] = null;
+  const entries = await Promise.all(RATE_TYPES.map(async (type) => {
+    let variacion = null;
     try {
       const hist = await database.getExchangeHistory(type, 2);
       const current = valueOf(type, cot);
-      if (hist.length < 2 || current == null) continue;
-      const prev = prevValueOf(type, hist[hist.length - 2]);
-      if (!prev) continue;
-      variaciones[type] = {
-        pct: Math.round(((current - prev) / prev) * 10000) / 100,
-        delta: Math.round((current - prev) * 100) / 100,
-      };
+      if (hist.length >= 2 && current != null) {
+        const prev = prevValueOf(type, hist[hist.length - 2]);
+        if (prev) {
+          variacion = {
+            pct: Math.round(((current - prev) / prev) * 10000) / 100,
+            delta: Math.round((current - prev) * 100) / 100,
+          };
+        }
+      }
     } catch {}
-  }
-  return variaciones;
+    return [type, variacion];
+  }));
+  return Object.fromEntries(entries);
 }
 
 router.get('/', h(async (req, res) => {
@@ -106,17 +108,7 @@ router.get('/historicos', h(async (req, res) => {
       return res.json(data);
     }
 
-    const data = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      data.push({
-        fecha: d.toISOString().split('T')[0],
-        blue: { buy: 1200 + Math.random() * 50, sell: 1220 + Math.random() * 50 },
-        oficial: { buy: 850 + Math.random() * 10, sell: 890 + Math.random() * 10 },
-      });
-    }
-    res.json(data);
+    res.json([]);
   } catch {
     res.json([]);
   }

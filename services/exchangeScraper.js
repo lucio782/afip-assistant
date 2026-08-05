@@ -54,7 +54,7 @@ async function getCotizaciones() {
   base.ccl = { value: daAvg('contadoconliqui') || base.ccl?.value || null };
   base.tarjeta = { value: da('tarjeta') || base.tarjeta?.value || null };
   if (dolarapi.status === 'rejected' || !dolarapiMap.oficial) {
-    if (!base.tarjeta.value && base.oficial.sell) base.tarjeta.value = Math.round(base.oficial.sell * 1.65 * 100) / 100;
+    if (!base.tarjeta.value && base.oficial.sell) base.tarjeta.value = Math.round(base.oficial.sell * config.exchange.tarjetaMultiplier * 100) / 100;
   }
 
   const dolarOficial = base.oficial.sell || base.oficial.buy || base.blue.sell;

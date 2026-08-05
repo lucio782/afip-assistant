@@ -23,6 +23,8 @@ const IPC_MENSUAL = {
 router.get('/inflacion/indec', (req, res) => {
   res.json({
     fuente: 'INDEC (aproximado)',
+    estimado: true,
+    aviso: 'Datos de referencia. Los valores 2025-2026 son estimaciones y pueden diferir del dato oficial.',
     anual: INFLACION_ANUAL,
     mensual: IPC_MENSUAL,
   });
@@ -41,7 +43,7 @@ router.post('/inflacion/calcular', (req, res) => {
   const end = new Date(anioHasta, mesHasta - 1, 1);
 
   if (start >= end) {
-    return res.json({ error: 'La fecha final debe ser posterior a la inicial', montoOriginal: monto, montoAjustado: monto, factor: 1 });
+    return res.status(400).json({ error: 'La fecha final debe ser posterior a la inicial', montoOriginal: monto, montoAjustado: monto, factor: 1 });
   }
 
   let current = new Date(start);
@@ -77,11 +79,13 @@ router.post('/inflacion/calcular', (req, res) => {
 router.post('/prestamo/calcular', (req, res) => {
   const { monto, cuotas, interesAnual } = req.body;
 
-  if (!monto || !cuotas) return res.status(400).json({ error: 'Monto y cuotas requeridos' });
+  const p = Number(monto);
+  const n = Number(cuotas);
+  if (!Number.isFinite(p) || p <= 0 || !Number.isInteger(n) || n <= 0 || n > 360) {
+    return res.status(400).json({ error: 'Monto y cuotas inválidos (1 a 360 cuotas)' });
+  }
 
-  const tasaMensual = ((interesAnual || 85) / 12) / 100; // Default 85% annual
-  const n = cuotas;
-  const p = monto;
+  const tasaMensual = (((Number(interesAnual) || 85) / 12) / 100); // Default 85% annual
 
   // French system (cuota fija)
   if (tasaMensual > 0) {
@@ -162,7 +166,7 @@ router.get('/guias', (req, res) => {
       explicacion: [
         'Blue: dólar informal (cuevas/arbolitos). Referencia del mercado paralelo.',
         'Oficial: cotización del Banco Nación. Usada para importaciones y exportaciones.',
-        'Tarjeta: oficial + impuestos (30% PAIS + 35% percepción ganancias). Usado en consumos en dólares.',
+        'Tarjeta: cotización de mercado para consumos en dólares, con impuestos vigentes.',
         'MEP: dólar bursátil. Comprando bonos en pesos y vendiéndolos en dólares.',
         'CCL: "Contado con Liqui". Similar al MEP pero envía los dólares al exterior.',
       ],
@@ -171,9 +175,9 @@ router.get('/guias', (req, res) => {
       titulo: 'Cómo usar el registro de gastos',
       pasos: [
         'Registrá tus gastos diarios seleccionando monto, moneda (ARS o USD) y categoría',
-        'El plan Free permite hasta 10 gastos por mes. Pro: 200. Premium: ilimitado.',
+        'Hoy el registro de gastos es ilimitado y gratuito para todos los usuarios',
         'El resumen muestra totales por moneda y por categoría',
-        'Con Premium podés exportar todo a CSV para llevarlo a Excel',
+        'Exportá todo a CSV para llevarlo a Excel',
         'Los gastos en USD se convierten automáticamente a ARS usando la cotización del día',
       ],
     },

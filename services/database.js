@@ -178,6 +178,17 @@ function close() {
   if (!isPostgres && db && db.close) db.close();
 }
 
+// Fechas en hora de Argentina (UTC-3) para métricas y límites
+function todayArg() {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
+}
+function monthArg() {
+  return todayArg().slice(0, 7);
+}
+function daysAgoArg(days) {
+  return new Date(Date.now() - days * 86400000).toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
+}
+
 // ===== USERS =====
 async function getUser(userId) {
   return getOne('SELECT * FROM users WHERE id = $1', [userId]);
@@ -225,7 +236,10 @@ async function getExpenses(userId, limit = 50, offset = 0) {
 }
 
 async function deleteExpense(id, userId) {
+  const existing = await getOne('SELECT id FROM expenses WHERE id = $1 AND user_id = $2', [id, userId]);
+  if (!existing) return false;
   await query('DELETE FROM expenses WHERE id = $1 AND user_id = $2', [id, userId]);
+  return true;
 }
 
 async function getExpenseSummary(userId, month, year) {
@@ -240,13 +254,9 @@ async function getExpenseSummary(userId, month, year) {
 // ===== EXCHANGE RATES =====
 async function saveExchangeRate(date, source, buy, sell) {
   const id = uuidv4();
-  if (isPostgres) {
-    await query('INSERT INTO exchange_history (id, date, source, buy, sell) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING',
-      [id, date, source, buy, sell]);
-  } else {
-    await query('INSERT OR REPLACE INTO exchange_history (id, date, source, buy, sell) VALUES ($1, $2, $3, $4, $5)',
-      [id, date, source, buy, sell]);
-  }
+  await query('DELETE FROM exchange_history WHERE date = $1 AND source = $2', [date, source]);
+  await query('INSERT INTO exchange_history (id, date, source, buy, sell) VALUES ($1, $2, $3, $4, $5)',
+    [id, date, source, buy, sell]);
 }
 
 async function getExchangeHistory(source, days = 7) {
@@ -271,7 +281,7 @@ async function getUserAlerts(userId) {
 
 // ===== MÉTRICAS =====
 async function incrementVisits(vv = 'anon') {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayArg();
   if (isPostgres) {
     await query('INSERT INTO visitors (date, vv) VALUES ($1, $2) ON CONFLICT DO NOTHING', [today, vv]);
     await query('INSERT INTO visits (date, count) VALUES ($1, 1) ON CONFLICT (date) DO UPDATE SET count = visits.count + 1', [today]);
@@ -306,7 +316,8 @@ async function deleteReview(id) {
 }
 
 async function getMetrics() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayArg();
+  const weekStart = daysAgoArg(7);
 
   const count = async (sql, params = []) => {
     const row = await getOne(sql, params);
@@ -315,63 +326,66 @@ async function getMetrics() {
 
   let usuariosHoySql, activosSql, visitasUltimos7Sql, visitasTotalSql;
   let unicosHoySql, unicos7Sql, unicosTotalSql;
+  const visitasHoyParams = [today];
+  const unicos7Params = [weekStart];
   if (isPostgres) {
-    usuariosHoySql = "SELECT COUNT(*) AS n FROM users WHERE created_at::date = CURRENT_DATE";
+    usuariosHoySql = "SELECT COUNT(*) AS n FROM users WHERE to_char(created_at AT TIME ZONE 'America/Argentina/Buenos_Aires', 'YYYY-MM-DD') = $1";
     activosSql = `SELECT COUNT(*) AS n FROM (
       SELECT DISTINCT user_id FROM expenses WHERE created_at >= NOW() - INTERVAL '7 days'
       UNION
       SELECT DISTINCT user_id FROM alerts WHERE created_at >= NOW() - INTERVAL '7 days'
     ) t`;
-    visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= to_char(CURRENT_DATE - INTERVAL '7 days', 'YYYY-MM-DD')";
+    visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= $1";
     visitasTotalSql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits";
     unicosHoySql = "SELECT COUNT(*) AS n FROM visitors WHERE date = $1";
-    unicos7Sql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors WHERE date >= to_char(CURRENT_DATE - INTERVAL '7 days', 'YYYY-MM-DD')) t";
+    unicos7Sql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors WHERE date >= $1) t";
     unicosTotalSql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors) t";
   } else {
-    usuariosHoySql = "SELECT COUNT(*) AS n FROM users WHERE date(created_at) = date('now')";
+    usuariosHoySql = "SELECT COUNT(*) AS n FROM users WHERE substr(created_at, 1, 10) = $1";
     activosSql = `SELECT COUNT(*) AS n FROM (
       SELECT DISTINCT user_id FROM expenses WHERE created_at >= datetime('now', '-7 days')
       UNION
       SELECT DISTINCT user_id FROM alerts WHERE created_at >= datetime('now', '-7 days')
     ) t`;
-    visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= date('now', '-7 days')";
+    visitasUltimos7Sql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date >= $1";
     visitasTotalSql = "SELECT COALESCE(SUM(count), 0) AS n FROM visits";
     unicosHoySql = "SELECT COUNT(*) AS n FROM visitors WHERE date = $1";
-    unicos7Sql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors WHERE date >= date('now', '-7 days')) t";
+    unicos7Sql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors WHERE date >= $1) t";
     unicosTotalSql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors) t";
   }
 
-  const visitsHoy = await count("SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date = $1", [today]);
-  const total = await count(visitasTotalSql);
-  const ultimos7 = await count(visitasUltimos7Sql);
+  const [usuarios, gastos, alertas, registradosHoy, activosUltimos7Dias, visitasHoy, total, ultimos7, unicosHoy, unicos7, unicosTotal] = await Promise.all([
+    count('SELECT COUNT(*) AS n FROM users'),
+    count('SELECT COUNT(*) AS n FROM expenses'),
+    count('SELECT COUNT(*) AS n FROM alerts'),
+    count(usuariosHoySql, [today]),
+    count(activosSql),
+    count("SELECT COALESCE(SUM(count), 0) AS n FROM visits WHERE date = $1", visitasHoyParams),
+    count(visitasTotalSql),
+    count(visitasUltimos7Sql, [weekStart]),
+    count(unicosHoySql, [today]),
+    count(unicos7Sql, unicos7Params),
+    count(unicosTotalSql),
+  ]);
 
   return {
-    usuarios: await count('SELECT COUNT(*) AS n FROM users'),
-    gastos: await count('SELECT COUNT(*) AS n FROM expenses'),
-    alertas: await count('SELECT COUNT(*) AS n FROM alerts'),
-    registradosHoy: await count(usuariosHoySql),
-    activosUltimos7Dias: await count(activosSql),
-    visitas: { hoy: visitsHoy, ultimos7Dias: ultimos7, total },
-    visitantesUnicos: {
-      hoy: await count(unicosHoySql, [today]),
-      ultimos7Dias: await count(unicos7Sql),
-      total: await count(unicosTotalSql),
-    },
+    usuarios, gastos, alertas,
+    registradosHoy, activosUltimos7Dias,
+    visitas: { hoy: visitasHoy, ultimos7Dias: ultimos7, total },
+    visitantesUnicos: { hoy: unicosHoy, ultimos7Dias: unicos7, total: unicosTotal },
   };
 }
 
 // ===== RATE LIMITING =====
-async function checkRateLimit(userId, tier) {
-  const month = new Date().toISOString().slice(0, 7);
+async function checkRateLimit(userId, max) {
+  const month = monthArg();
   const row = await getOne('SELECT * FROM rate_limits WHERE user_id = $1 AND month = $2', [userId, month]);
-  const limits = { free: 99999, pro: 99999, premium: 99999 };
-  const max = limits[tier] || 99999;
   const current = row ? row.expense_count : 0;
   return { allowed: current < max, current, max, remaining: max - current };
 }
 
 async function incrementRateLimit(userId) {
-  const month = new Date().toISOString().slice(0, 7);
+  const month = monthArg();
   if (isPostgres) {
     await query('INSERT INTO rate_limits (user_id, expense_count, month) VALUES ($1, 1, $2) ON CONFLICT (user_id, month) DO UPDATE SET expense_count = rate_limits.expense_count + 1',
       [userId, month]);
@@ -388,4 +402,4 @@ module.exports = { init, save, close,
   createAlert, getUserAlerts,
   checkRateLimit, incrementRateLimit,
   incrementVisits, getMetrics,
-  addReview, getReview, getReviews, getReviewsByUser, deleteReview };
+  addReview, getReview, getReviews, deleteReview };

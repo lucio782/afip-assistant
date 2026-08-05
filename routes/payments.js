@@ -1,7 +1,9 @@
 const express = require('express');
+const crypto = require('crypto');
 const database = require('../services/database');
-const { getPlans } = require('../services/tier');
+const { getPlans, TIERS } = require('../services/tier');
 const { requireAuth } = require('../services/auth');
+const config = require('../config');
 
 const router = express.Router();
 const h = require('../services/asyncHandler');
@@ -21,7 +23,11 @@ router.post('/crear-preferencia', requireAuth, h(async (req, res) => {
   const plan = plans.find(p => p.id === planId);
   if (!plan || plan.price === 0) return res.status(400).json({ error: 'Plan inválido' });
 
+  // Sin MercadoPago configurado: el modo mock solo se habilita en desarrollo (nunca en prod).
   if (!mercadopago) {
+    if (!config.payments.mock) {
+      return res.status(503).json({ error: 'Pagos no disponibles en este momento' });
+    }
     const user = await database.getOrCreateUser(req.userId);
     await database.updateUserTier(user.id, planId, {
       mercadopago_id: 'mock_' + Date.now(),
@@ -37,28 +43,56 @@ router.post('/crear-preferencia', requireAuth, h(async (req, res) => {
   try {
     const preference = {
       items: [{
-        title: `ARCA Assistant - Plan ${plan.name}`,
+        title: `${config.app.name} - Plan ${plan.name}`,
         unit_price: plan.price, quantity: 1, currency_id: 'ARS',
       }],
       payer: { email: req.body.email || req.userEmail || 'comprador@email.com' },
       back_urls: {
-        success: req.headers.origin + '/?pago=ok&plan=' + planId,
-        failure: req.headers.origin + '/?pago=error',
-        pending: req.headers.origin + '/?pago=pending',
+        success: config.app.url + '/?pago=ok&plan=' + planId,
+        failure: config.app.url + '/?pago=error',
+        pending: config.app.url + '/?pago=pending',
       },
       auto_return: 'approved',
-      notification_url: req.headers.origin + '/api/payments/webhook',
+      notification_url: config.app.url + '/api/payments/webhook',
     };
     const result = await mercadopago.preferences.create(preference);
     res.json({ status: 'ok', init_point: result.body.init_point, preference_id: result.body.id, plan: planId });
   } catch (err) {
-    res.status(502).json({ error: 'Error al crear pago', detail: err.message });
+    res.status(502).json({ error: 'Error al crear pago' });
   }
 }));
 
+// Webhook de MercadoPago: verifica la firma y aplica el upgrade de tier cuando el pago se aprueba.
 router.post('/webhook', (req, res) => {
-  const payment = req.body;
-  if (payment && payment.type === 'payment') console.log('Pago recibido:', payment.id);
+  const token = process.env.MP_ACCESS_TOKEN || '';
+  const body = req.body || {};
+
+  if (token) {
+    const sig = req.headers['x-signature'] || '';
+    const requestId = req.headers['x-request-id'] || '';
+    const ts = (sig.match(/ts=(\d+)/) || [])[1] || '';
+    const v1 = (sig.match(/v1=([0-9a-f]+)/) || [])[1] || '';
+    const dataId = body.data && body.data.id;
+    const msg = `id:${dataId};request-id:${requestId};ts:${ts};`;
+    const expected = crypto.createHmac('sha256', token).update(msg).digest('hex');
+    if (!v1 || expected !== v1) return res.sendStatus(403);
+  }
+
+  if (body.type === 'payment' && body.data && body.data.id && token && mercadopago) {
+    mercadopago.payment.get(body.data.id)
+      .then(result => {
+        const p = result.body;
+        if (p.status === 'approved' && p.external_reference) {
+          return database.updateUserTier(p.external_reference, 'pro', {
+            mercadopago_id: String(p.id),
+            subscription_id: String(p.id),
+            subscription_status: 'active',
+          });
+        }
+      })
+      .catch(() => {});
+  }
+
   res.sendStatus(200);
 });
 
@@ -67,7 +101,6 @@ router.get('/status/:userId', requireAuth, h(async (req, res) => {
     return res.status(403).json({ error: 'No autorizado' });
   }
   const user = await database.getOrCreateUser(req.userId);
-  const { TIERS } = require('../services/tier');
   res.json({ userId: user.id, tier: user.tier, subscription_status: user.subscription_status, features: TIERS[user.tier] || TIERS.free });
 }));
 

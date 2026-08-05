@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 router.post('/calcular', (req, res) => {
-  const { bruto, tipo } = req.body;
-  if (!bruto) return res.status(400).json({ error: 'Sueldo bruto requerido' });
-
-  const sueldoBruto = parseFloat(bruto);
+  const { bruto } = req.body;
+  const sueldoBruto = Number(bruto);
+  if (!Number.isFinite(sueldoBruto) || sueldoBruto <= 0) {
+    return res.status(400).json({ error: 'Sueldo bruto inválido' });
+  }
 
   // Simplified Argentine salary deductions (2024 approximations)
   const jubilacion = sueldoBruto * 0.11;

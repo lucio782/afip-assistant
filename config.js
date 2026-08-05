@@ -43,6 +43,7 @@ module.exports = {
     binanceSymbols: envJson('BINANCE_SYMBOLS', ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'USDTUSDT']),
     timeout: envNum('EXCHANGE_TIMEOUT_MS', 10000),
     cacheTtl: envNum('EXCHANGE_CACHE_TTL_MS', 60000),
+    tarjetaMultiplier: envNum('TARJETA_MULTIPLIER', 1.65),
   },
 
   news: {
@@ -75,5 +76,10 @@ module.exports = {
 
   database: {
     url: env('DATABASE_URL', null),
+  },
+
+  payments: {
+    // En producción (con DATABASE_URL) el mock de pagos queda desactivado por seguridad.
+    mock: envNum('PAYMENTS_MOCK', env('DATABASE_URL', null) ? 0 : 1),
   },
 };

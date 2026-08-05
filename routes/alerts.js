@@ -1,7 +1,9 @@
 const express = require('express');
+const axios = require('axios');
 const database = require('../services/database');
 const { requireTier } = require('../services/tier');
 const { requireAuth } = require('../services/auth');
+const config = require('../config');
 
 const router = express.Router();
 const h = require('../services/asyncHandler');
@@ -20,6 +22,7 @@ router.post('/', requireAuth, requireTier('alerts'), h(async (req, res) => {
 router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), h(async (req, res) => {
   const now = new Date();
   const alerts = [];
+  const today = new Date().toISOString().split('T')[0];
 
   const day = now.getDate();
   if (day >= 15 && day <= 20) {
@@ -35,8 +38,6 @@ router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), h(async
   }
 
   try {
-    const axios = require('axios');
-    const config = require('../config');
     const { data } = await axios.get(config.exchange.bluelyticsUrl, { timeout: config.alerts.fetchTimeout });
     const blue = data.blue?.value_sell;
     if (blue && blue > config.alerts.dolarThreshold) {
@@ -46,7 +47,7 @@ router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), h(async
     }
   } catch {}
 
-  res.json({ alerts_creadas: alerts.length, alerts });
+  res.json({ alerts_creadas: alerts.length, alerts, fecha: today });
 }));
 
 module.exports = router;

@@ -467,6 +467,7 @@ let cotizacionesCache = null;
 function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 4000); }
 function formatPrice(n) { return Number(n).toLocaleString('es-AR', {minimumFractionDigits:0,maximumFractionDigits:0}) }
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function safeUrl(u) { try { const p = new URL(u); return (p.protocol === 'http:' || p.protocol === 'https:') ? p.href : '#'; } catch { return '#'; } }
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1'); }
 function $(id) { return document.getElementById(id); }
 function apiHeaders() { const h = {'Content-Type':'application/json'}; if (token) h['Authorization'] = 'Bearer ' + token; return h; }
@@ -789,7 +790,7 @@ function renderNews() {
     let fecha = '';
     if (n.fecha) { const d = new Date(n.fecha); if (!isNaN(d)) fecha = d.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
     const tag = currentNewsCat === 'local' ? 'AR' : currentNewsCat === 'cripto' ? '₿' : '🌎';
-    return '<div class="news-item"><span class="n-tag">' + tag + '</span><div style="flex:1"><a href="' + n.link + '" target="_blank" rel="noopener">' + escapeHtml(n.titulo) + '</a>' +
+    return '<div class="news-item"><span class="n-tag">' + tag + '</span><div style="flex:1"><a href="' + safeUrl(n.link) + '" target="_blank" rel="noopener">' + escapeHtml(n.titulo) + '</a>' +
       (n.descripcion ? '<div class="n-meta">' + escapeHtml(n.descripcion) + '</div>' : '') +
       '<div class="n-meta">' + escapeHtml(n.fuente || '') + (fecha ? ' · ' + fecha : '') + '</div></div></div>';
   }).join('');
@@ -827,7 +828,7 @@ async function loadGastos() {
     const gastos = await res.json();
     $('gastosList').innerHTML = !gastos.length
       ? '<div class="empty-state"><div class="icon">📋</div><p>Todavía no registraste gastos.</p></div>'
-      : gastos.slice(0, 20).map(e => '<div class="expense-item"><div><strong>' + escapeHtml(e.description) + '</strong><br><span style="font-size:.75rem;color:var(--text2)">' + e.date + ' · ' + e.category + '</span></div><div style="display:flex;align-items:center;gap:8px"><span style="color:' + (e.currency==='USD'?'var(--accent)':'var(--success)') + '">' + e.currency + ' $' + formatPrice(e.amount) + '</span><button class="btn btn-danger btn-sm" onclick="deleteGasto(\'' + e.id + '\')">✕</button></div></div>').join('');
+      : gastos.slice(0, 20).map(e => '<div class="expense-item"><div><strong>' + escapeHtml(e.description) + '</strong><br><span style="font-size:.75rem;color:var(--text2)">' + escapeHtml(e.date) + ' · ' + escapeHtml(e.category) + '</span></div><div style="display:flex;align-items:center;gap:8px"><span style="color:' + (e.currency==='USD'?'var(--accent)':'var(--success)') + '">' + escapeHtml(e.currency) + ' $' + formatPrice(e.amount) + '</span><button class="btn btn-danger btn-sm" onclick="deleteGasto(\'' + e.id + '\')">✕</button></div></div>').join('');
     const mes = new Date().getMonth() + 1, anio = new Date().getFullYear();
     $('gastoMes').textContent = mes + '/' + anio;
     const r2 = await fetch('/api/gastos/resumen', { method:'POST', headers:apiHeaders(), body: JSON.stringify({month:mes,year:anio}) });
@@ -910,7 +911,7 @@ async function loadAlertas() {
     const alerts = await res.json();
     $('alertasList').innerHTML = !alerts.length
       ? '<div class="empty-state"><div class="icon">🔕</div><p>No hay alertas. Hacé click en "Verificar ahora".</p></div>'
-      : alerts.map(a => '<div class="guide-card"><div style="display:flex;justify-content:space-between"><strong>' + a.title + '</strong><span style="font-size:.75rem;color:var(--text2)">' + new Date(a.created_at).toLocaleDateString('es-AR') + '</span></div><p style="font-size:.8rem;color:var(--text2);margin-top:4px">' + (a.message || '') + '</p></div>').join('');
+      : alerts.map(a => '<div class="guide-card"><div style="display:flex;justify-content:space-between"><strong>' + escapeHtml(a.title) + '</strong><span style="font-size:.75rem;color:var(--text2)">' + new Date(a.created_at).toLocaleDateString('es-AR') + '</span></div><p style="font-size:.8rem;color:var(--text2);margin-top:4px">' + escapeHtml(a.message || '') + '</p></div>').join('');
   } catch {}
 }
 async function checkAlerts() {

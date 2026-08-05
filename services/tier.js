@@ -23,34 +23,41 @@ async function canUseFeature(userId, feature) {
 }
 
 function requireTier(feature) {
-  return async (req, res, next) => {
-    const userId = req.userId || 'guest';
-    const allowed = await canUseFeature(userId, feature);
-    if (!allowed) {
-      const tier = await getTier(userId);
-      return res.status(402).json({
-        error: 'Funcionalidad premium',
-        message: 'Necesitás una suscripción Pro o Premium para usar esta función',
-        upgrade: true, tier,
-      });
-    }
-    next();
+  return (req, res, next) => {
+    (async () => {
+      const userId = req.userId || 'guest';
+      const allowed = await canUseFeature(userId, feature);
+      if (!allowed) {
+        const tier = await getTier(userId);
+        return res.status(402).json({
+          error: 'Funcionalidad premium',
+          message: 'Necesitás una suscripción Pro o Premium para usar esta función',
+          upgrade: true, tier,
+        });
+      }
+      next();
+    })().catch(next);
   };
 }
 
 async function expenseRateLimit(req, res, next) {
-  const userId = req.userId || 'guest';
-  const user = await database.getOrCreateUser(userId);
-  const tier = user.tier || 'free';
-  const limit = await database.checkRateLimit(userId, tier);
-  if (!limit.allowed) {
-    return res.status(429).json({
-      error: 'Límite de gastos alcanzado',
-      message: `Tu plan ${tier} permite ${limit.max} gastos por mes. Actualizá a Pro o Premium.`,
-      remaining: 0, limit, upgrade: true,
-    });
+  try {
+    const userId = req.userId || 'guest';
+    const user = await database.getOrCreateUser(userId);
+    const tier = user.tier || 'free';
+    const max = (TIERS[tier] || TIERS.free).expensesPerMonth;
+    const limit = await database.checkRateLimit(userId, max);
+    if (!limit.allowed) {
+      return res.status(429).json({
+        error: 'Límite de gastos alcanzado',
+        message: `Tu plan ${tier} permite ${limit.max} gastos por mes. Actualizá a Pro o Premium.`,
+        remaining: 0, limit, upgrade: true,
+      });
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 }
 
 function getPlans() {
