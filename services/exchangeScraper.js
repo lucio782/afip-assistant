@@ -9,7 +9,7 @@ async function getCotizaciones() {
   const [bluelytics, fx, crypto] = await Promise.allSettled([
     fetchJson('https://api.bluelytics.com.ar/v2/latest'),
     fetchJson('https://open.er-api.com/v6/latest/USD'),
-    fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,solana&vs_currencies=ars,usd'),
+    fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin%2Cethereum%2Ctether%2Csolana&vs_currencies=ars%2Cusd'),
   ]);
 
   const base = {
@@ -52,17 +52,31 @@ async function getCotizaciones() {
     base.yen = { usd: jpyUsd, ars: jpyUsd ? Math.round(jpyUsd * dolarOficial * 100) / 100 : null };
   }
 
-  if (crypto.status === 'fulfilled') {
+  let criptos = null;
+  if (crypto.status === 'fulfilled' && crypto.value && crypto.value.bitcoin) {
     const d = crypto.value;
-    const set = (key, name) => {
-      if (d[key]) {
-        base.criptos[name] = { ars: d[key].ars != null ? d[key].ars : null, usd: d[key].usd != null ? d[key].usd : null };
+    criptos = {};
+    for (const key of ['bitcoin', 'ethereum', 'tether', 'solana']) {
+      if (d[key]) criptos[key] = { ars: d[key].ars != null ? d[key].ars : null, usd: d[key].usd != null ? d[key].usd : null };
+    }
+  } else {
+    // Fallback: Binance (precios en USD) convertidos con el dólar oficial
+    try {
+      const b = await fetchJson('https://api.binance.com/api/v3/ticker/price?symbols=' + encodeURIComponent('["BTCUSDT","ETHUSDT","SOLUSDT","USDTUSDT"]'));
+      const map = { BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum', SOLUSDT: 'solana', USDTUSDT: 'tether' };
+      const tmp = {};
+      for (const t of b) {
+        const usd = parseFloat(t.price);
+        if (map[t.symbol] && usd) tmp[map[t.symbol]] = { usd, ars: dolarOficial ? Math.round(usd * dolarOficial * 100) / 100 : null };
       }
-    };
-    set('bitcoin', 'bitcoin');
-    set('ethereum', 'ethereum');
-    set('tether', 'tether');
-    set('solana', 'solana');
+      if (tmp.bitcoin || tmp.ethereum) criptos = tmp;
+    } catch {}
+  }
+
+  if (criptos) {
+    for (const key of ['bitcoin', 'ethereum', 'tether', 'solana']) {
+      if (criptos[key]) base.criptos[key] = criptos[key];
+    }
     base.crypto = base.criptos;
   }
 
