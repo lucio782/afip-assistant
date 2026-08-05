@@ -290,13 +290,14 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
     <div class="exchange-grid" id="cotizacionesGrid"></div>
     <div class="chart-wrap"><canvas id="dolarChart"></canvas></div>
     <p style="font-size:.75rem;color:var(--text2);text-align:right" id="dolarTimestamp"></p>
+    <p style="font-size:.72rem;color:var(--text2)">Fuentes: <strong>Bluelytics</strong> (dólar) · <strong>open.er-api.com</strong> (euro/yen) · <strong>CoinGecko/Binance</strong> (criptos). Las flechas ▲▼ comparan con el día anterior.</p>
   </div>
   <div class="card">
     <h2>💱 Conversor rápido</h2>
     <div class="form-row">
       <div class="form-group"><label>Monto</label><input id="convMonto" type="number" value="1000" oninput="convertirMoneda()" step="any"></div>
-      <div class="form-group"><label>De</label><select id="convDesde" onchange="convertirMoneda()"><option value="USD">USD</option><option value="EUR">EUR</option><option value="ARS">ARS</option></select></div>
-      <div class="form-group"><label>A</label><select id="convHasta" onchange="convertirMoneda()"><option value="ARS">ARS</option><option value="USD">USD</option><option value="EUR">EUR</option></select></div>
+      <div class="form-group"><label>De</label><select id="convDesde" onchange="convertirMoneda()"><option value="USD">USD</option><option value="EUR">EUR</option><option value="ARS">ARS</option><option value="YEN">Yen (100)</option><option value="BTC">Bitcoin</option><option value="ETH">Ethereum</option><option value="USDT">USDT</option><option value="SOL">Solana</option></select></div>
+      <div class="form-group"><label>A</label><select id="convHasta" onchange="convertirMoneda()"><option value="ARS">ARS</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="YEN">Yen (100)</option><option value="BTC">Bitcoin</option><option value="ETH">Ethereum</option><option value="USDT">USDT</option><option value="SOL">Solana</option></select></div>
       <div class="form-group"><label>Tipo</label><select id="convTipo" onchange="convertirMoneda()"><option value="blue">Blue</option><option value="oficial">Oficial</option><option value="tarjeta">Tarjeta</option></select></div>
     </div>
     <div id="convResultado" style="text-align:center;padding:16px;font-size:1.5rem;font-weight:700;color:var(--success)">---</div>
@@ -705,26 +706,35 @@ async function loadCotizaciones() {
     convertirMoneda();
   } catch {}
 }
+function variacionHtml(v) {
+  if (!v || v.pct == null) return '<div class="sub-price" style="color:var(--text2)">—</div>';
+  const up = v.pct > 0, down = v.pct < 0;
+  const color = up ? '#22c55e' : down ? '#ef4444' : '#94a3b8';
+  const arrow = up ? '▲' : down ? '▼' : '■';
+  return '<div class="sub-price" style="color:' + color + ';font-weight:600">' + arrow + ' ' + (Math.abs(v.pct).toLocaleString('es-AR', { maximumFractionDigits: 2 })) + '%</div>';
+}
 function renderCotizaciones(data) {
   if (!data) return '';
+  const v = data.variaciones || {};
   const cards = [
-    { type:'Dólar Blue', buy:data.blue?.buy, sell:data.blue?.sell, tag:'💵' },
-    { type:'Dólar Oficial', buy:data.oficial?.buy, sell:data.oficial?.sell, tag:'🏦' },
-    { type:'Dólar Tarjeta', value:data.tarjeta?.value, tag:'💳' },
-    { type:'Dólar MEP', value:data.mep?.value, tag:'📊' },
-    { type:'Dólar CCL', value:data.ccl?.value, tag:'🌐' },
-    { type:'Euro', value:data.euro?.ars, sub:'USD ' + (data.euro?.usd != null ? data.euro.usd : '—'), tag:'💶' },
-    { type:'Yen (100)', value:data.yen?.ars, sub:'USD ' + (data.yen?.usd != null ? data.yen.usd : '—'), tag:'🇯🇵' },
-    { type:'Bitcoin', value:data.criptos?.bitcoin?.ars, sub:'USD ' + (data.criptos?.bitcoin?.usd != null ? data.criptos.bitcoin.usd : '—'), tag:'₿' },
-    { type:'Ethereum', value:data.criptos?.ethereum?.ars, sub:'USD ' + (data.criptos?.ethereum?.usd != null ? data.criptos.ethereum.usd : '—'), tag:'Ξ' },
-    { type:'USDT', value:data.criptos?.tether?.ars, sub:'USD ' + (data.criptos?.tether?.usd != null ? data.criptos.tether.usd : '—'), tag:'🪙' },
-    { type:'Solana', value:data.criptos?.solana?.ars, sub:'USD ' + (data.criptos?.solana?.usd != null ? data.criptos.solana.usd : '—'), tag:'◎' },
+    { type:'Dólar Blue', buy:data.blue?.buy, sell:data.blue?.sell, tag:'💵', vKey:'blue' },
+    { type:'Dólar Oficial', buy:data.oficial?.buy, sell:data.oficial?.sell, tag:'🏦', vKey:'oficial' },
+    { type:'Dólar Tarjeta', value:data.tarjeta?.value, tag:'💳', vKey:'tarjeta' },
+    { type:'Dólar MEP', value:data.mep?.value, tag:'📊', vKey:'mep' },
+    { type:'Dólar CCL', value:data.ccl?.value, tag:'🌐', vKey:'ccl' },
+    { type:'Dólar Mayorista', value:data.mayorista?.value, tag:'🏛️', vKey:'mayorista' },
+    { type:'Euro', value:data.euro?.ars, sub:'USD ' + (data.euro?.usd != null ? data.euro.usd : '—'), tag:'💶', vKey:'euro' },
+    { type:'Yen (100)', value:data.yen?.ars, sub:'USD ' + (data.yen?.usd != null ? data.yen.usd : '—'), tag:'🇯🇵', vKey:'yen' },
+    { type:'Bitcoin', value:data.criptos?.bitcoin?.ars, sub:'USD ' + (data.criptos?.bitcoin?.usd != null ? data.criptos.bitcoin.usd : '—'), tag:'₿', vKey:'cripto_bitcoin' },
+    { type:'Ethereum', value:data.criptos?.ethereum?.ars, sub:'USD ' + (data.criptos?.ethereum?.usd != null ? data.criptos.ethereum.usd : '—'), tag:'Ξ', vKey:'cripto_ethereum' },
+    { type:'USDT', value:data.criptos?.tether?.ars, sub:'USD ' + (data.criptos?.tether?.usd != null ? data.criptos.tether.usd : '—'), tag:'🪙', vKey:'cripto_tether' },
+    { type:'Solana', value:data.criptos?.solana?.ars, sub:'USD ' + (data.criptos?.solana?.usd != null ? data.criptos.solana.usd : '—'), tag:'◎', vKey:'cripto_solana' },
   ];
   return cards.map(i => '<div class="exchange-card"><div class="type">' + i.tag + ' ' + i.type + '</div>' +
     (i.buy != null ? '<div class="price buy">Compra $' + formatPrice(i.buy) + '</div>' : '') +
     (i.sell != null ? '<div class="price sell">Venta $' + formatPrice(i.sell) + '</div>' : '') +
     (i.value != null ? '<div class="price blue">$' + formatPrice(i.value) + '</div>' : '<div class="price">—</div>') +
-    (i.sub ? '<div class="sub-price">' + i.sub + '</div>' : '') + '</div>').join('');
+    (i.sub ? '<div class="sub-price">' + i.sub + '</div>' : '') + variacionHtml(v[i.vKey]) + '</div>').join('');
 }
 function convertirMoneda() {
   const monto = parseFloat($('convMonto').value) || 0;
@@ -732,21 +742,31 @@ function convertirMoneda() {
   const hasta = $('convHasta').value;
   const tipo = $('convTipo').value;
   if (!cotizacionesCache || !monto) { $('convResultado').textContent = '---'; return; }
-  const dolar = (tipo === 'blue' ? cotizacionesCache.blue?.sell
-    : tipo === 'oficial' ? cotizacionesCache.oficial?.sell
-    : tipo === 'tarjeta' ? cotizacionesCache.tarjeta?.value
+  const c = cotizacionesCache;
+  const dolar = (tipo === 'blue' ? c.blue?.sell
+    : tipo === 'oficial' ? c.oficial?.sell
+    : tipo === 'tarjeta' ? c.tarjeta?.value
     : 1) || 1;
-  const eurARS = cotizacionesCache.euro?.ars || (cotizacionesCache.euro?.usd ? cotizacionesCache.euro.usd * dolar : null);
-  let resultado = monto;
-  const base = { USD: dolar, ARS: 1, EUR: eurARS || 1 };
-  if (eurARS) resultado = monto * (base[desde] / base[hasta]);
-  const fmt = (v) => v.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  const sym = (c) => c === 'USD' ? 'USD ' : c === 'EUR' ? '€ ' : '$ ';
+  const arsBase = {
+    ARS: 1,
+    USD: dolar,
+    EUR: c.euro?.ars != null ? c.euro.ars : null,
+    YEN: c.yen?.ars != null ? c.yen.ars / 100 : null,
+    BTC: c.criptos?.bitcoin?.ars != null ? c.criptos.bitcoin.ars : null,
+    ETH: c.criptos?.ethereum?.ars != null ? c.criptos.ethereum.ars : null,
+    USDT: c.criptos?.tether?.ars != null ? c.criptos.tether.ars : null,
+    SOL: c.criptos?.solana?.ars != null ? c.criptos.solana.ars : null,
+  };
+  if (arsBase[desde] == null || arsBase[hasta] == null) { $('convResultado').innerHTML = '<span style="font-size:.9rem;color:var(--text2);font-weight:400">Datos no disponibles</span>'; return; }
+  const resultado = monto * (arsBase[desde] / arsBase[hasta]);
+  const fmt = (v2) => v2.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const sym = (c2) => ({ ARS:'$', USD:'USD ', EUR:'€ ', YEN:'¥ ', BTC:'₿ ', ETH:'Ξ ', USDT:'USDT ', SOL:'◎ ' }[c2] || '');
+  const nombre = (c2) => c2 === 'YEN' ? '100 ¥' : c2 === 'USDT' ? '1 USDT' : '1 ' + c2;
   let nota = '';
-  if (desde === 'ARS' && hasta === 'USD') nota = '1 USD = $' + fmt(dolar);
-  else if (desde === 'USD' && hasta === 'ARS') nota = '1 USD = $' + fmt(dolar);
-  else if (eurARS && (desde === 'EUR' || hasta === 'EUR')) nota = '1 EUR = $' + fmt(eurARS) + ' · 1 EUR = USD ' + fmt(eurARS / dolar);
-  else nota = '1 ' + desde + ' = ' + (base[desde] ? fmt(base[desde] / base[hasta]) : '—') + ' ' + hasta;
+  if (desde === hasta) nota = 'Misma moneda';
+  else if (desde === 'ARS') nota = nombre(hasta) + ' = ' + fmt(arsBase[hasta]) + ' ARS';
+  else if (hasta === 'ARS') nota = nombre(desde) + ' = ' + fmt(arsBase[desde]) + ' ARS' + (desde === 'USD' ? ' (dólar ' + tipo + ')' : '');
+  else nota = nombre(desde) + ' = ' + fmt(arsBase[desde] / arsBase[hasta]) + ' ' + sym(hasta).trim();
   $('convResultado').innerHTML = sym(hasta) + fmt(resultado) +
     '<span style="font-size:.9rem;color:var(--text2);display:block;font-weight:400">' + nota + '</span>';
 }
