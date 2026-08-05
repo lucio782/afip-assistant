@@ -1,20 +1,13 @@
 const axios = require('axios');
+const config = require('../config');
 
 const FEEDS = {
-  local: [
-    'https://news.google.com/rss/search?q=(d%C3%B3lar%20OR%20monotributo%20OR%20econom%C3%ADa%20OR%20AFIP%20OR%20ARCA)%20Argentina&hl=es-419&gl=AR&ceid=AR:es-419',
-  ],
-  internacional: [
-    'https://news.google.com/rss/search?q=mercados%20mundiales%20OR%20wall%20street&hl=es-419&gl=US&ceid=US:es-419',
-    'https://www.cnbc.com/id/100003114/device/rss/rss.html',
-  ],
-  cripto: [
-    'https://cointelegraph.com/rss',
-  ],
+  local: config.news.feedsLocal,
+  internacional: config.news.feedsInternacional,
+  cripto: config.news.feedsCripto,
 };
 
 let cache = { data: null, timestamp: 0 };
-const CACHE_TTL = 10 * 60 * 1000;
 
 function decodeEntities(s) {
   return String(s || '')
@@ -56,7 +49,7 @@ function parseRSS(xml) {
 }
 
 async function fetchFeed(url) {
-  const { data } = await axios.get(url, { timeout: 12000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ARCA-Assistant/1.0)' } });
+  const { data } = await axios.get(url, { timeout: config.news.timeout, headers: { 'User-Agent': config.news.userAgent } });
   return parseRSS(data);
 }
 
@@ -73,13 +66,13 @@ async function refreshNews() {
         out[cat].push(item);
       }
     }
-    out[cat] = out[cat].slice(0, 12);
+    out[cat] = out[cat].slice(0, config.news.perCategory);
   }));
   return out;
 }
 
 async function getNoticias() {
-  if (cache.data && Date.now() - cache.timestamp < CACHE_TTL) {
+  if (cache.data && Date.now() - cache.timestamp < config.news.cacheTtl) {
     return { ...cache.data, cacheado: true };
   }
   try {

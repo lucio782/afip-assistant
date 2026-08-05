@@ -1,16 +1,18 @@
 const axios = require('axios');
+const config = require('../config');
 
-async function fetchJson(url, timeout = 10000) {
+async function fetchJson(url, timeout = config.exchange.timeout) {
   const { data } = await axios.get(url, { timeout });
   return data;
 }
 
 async function getCotizaciones() {
+  const ex = config.exchange;
   const [bluelytics, fx, crypto, dolarapi] = await Promise.allSettled([
-    fetchJson('https://api.bluelytics.com.ar/v2/latest'),
-    fetchJson('https://open.er-api.com/v6/latest/USD'),
-    fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin%2Cethereum%2Ctether%2Csolana&vs_currencies=ars%2Cusd'),
-    fetchJson('https://dolarapi.com/v1/dolares'),
+    fetchJson(ex.bluelyticsUrl),
+    fetchJson(ex.erapiUrl),
+    fetchJson(ex.coingeckoUrl),
+    fetchJson(ex.dolarapiUrl),
   ]);
 
   const base = {
@@ -74,7 +76,7 @@ async function getCotizaciones() {
   } else {
     // Fallback: Binance (precios en USD) convertidos con el dólar oficial
     try {
-      const b = await fetchJson('https://api.binance.com/api/v3/ticker/price?symbols=' + encodeURIComponent('["BTCUSDT","ETHUSDT","SOLUSDT","USDTUSDT"]'));
+      const b = await fetchJson(ex.binanceUrl + '?symbols=' + encodeURIComponent(JSON.stringify(ex.binanceSymbols)));
       const map = { BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum', SOLUSDT: 'solana', USDTUSDT: 'tether' };
       const tmp = {};
       for (const t of b) {

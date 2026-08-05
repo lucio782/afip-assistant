@@ -4,22 +4,23 @@ const path = require('path');
 const compression = require('compression');
 const cors = require('cors');
 const database = require('./services/database');
+const config = require('./config');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+const PORT = config.app.port;
+const HOST = config.app.host;
 
 app.set('trust proxy', 1);
 app.use(cors());
 app.use(compression());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: config.app.bodyLimit }));
 const crypto = require('crypto');
 app.use((req, res, next) => {
   if (req.path === '/' || req.path === '/index.html') {
     const cookie = req.headers.cookie || '';
-    const m = cookie.match(/(?:^|;\s*)vv=([^;]+)/);
+    const m = cookie.match(new RegExp('(?:^|;\\s*)' + config.security.visitorCookie + '=([^;]+)'));
     const vv = m ? m[1] : crypto.randomBytes(8).toString('hex');
-    if (!m) res.setHeader('Set-Cookie', `vv=${vv}; Path=/; Max-Age=31536000; SameSite=Lax`);
+    if (!m) res.setHeader('Set-Cookie', config.security.visitorCookie + '=' + vv + '; Path=/; Max-Age=' + config.security.visitorCookieMaxAge + '; SameSite=Lax');
     database.incrementVisits(vv).catch(() => {});
   }
   next();
@@ -58,7 +59,7 @@ app.use((err, req, res, next) => {
 
 app.get('/api/status', (req, res) => {
   res.json({
-    ok: true, name: 'ARCA Assistant', version: '2.0.0',
+    ok: true, name: config.app.name, version: config.app.version,
     mode: process.env.DATABASE_URL ? 'produccion' : 'desarrollo',
     uptime: process.uptime(),
     endpoints: {
@@ -75,7 +76,7 @@ let autoSaveInterval;
 function startAutoSave() {
   autoSaveInterval = setInterval(() => {
     try { database.save(); } catch (e) { console.error('Auto-save error:', e.message); }
-  }, 5 * 60 * 1000);
+  }, config.app.autoSaveMs);
 }
 
 async function shutdown(signal) {
@@ -96,7 +97,7 @@ process.on('uncaughtException', (err) => {
 database.init().then(() => {
   startAutoSave();
   app.listen(PORT, HOST, () => {
-    console.log(`ARCA Assistant v2 corriendo en http://localhost:${PORT}`);
+    console.log(`${config.app.name} v${config.app.version} corriendo en http://localhost:${PORT}`);
     console.log(`Modo: ${process.env.DATABASE_URL ? 'produccion (PostgreSQL)' : 'desarrollo (SQLite)'}`);
     console.log(`MP: ${process.env.MP_ACCESS_TOKEN ? 'real' : 'simulado'}`);
   });

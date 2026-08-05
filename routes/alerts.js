@@ -36,9 +36,10 @@ router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), h(async
 
   try {
     const axios = require('axios');
-    const { data } = await axios.get('https://api.bluelytics.com.ar/v2/latest', { timeout: 5000 });
+    const config = require('../config');
+    const { data } = await axios.get(config.exchange.bluelyticsUrl, { timeout: config.alerts.fetchTimeout });
     const blue = data.blue?.value_sell;
-    if (blue && blue > 1500) {
+    if (blue && blue > config.alerts.dolarThreshold) {
       const alert = await database.createAlert(req.userId, 'dolar', '📈 Dólar Blue superó $' + Math.round(blue),
         'El dólar blue está a $' + Math.round(blue) + '. Considerá comprar.');
       alerts.push(alert);

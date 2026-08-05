@@ -1,11 +1,11 @@
 const express = require('express');
 const { getCotizaciones } = require('../services/exchangeScraper');
 const database = require('../services/database');
+const config = require('../config');
 const router = express.Router();
 const h = require('../services/asyncHandler');
 
 let cache = { data: null, timestamp: 0 };
-const CACHE_TTL = 60000; // 1 min
 
 const RATE_TYPES = ['blue', 'oficial', 'tarjeta', 'mep', 'ccl', 'mayorista', 'euro', 'yen',
   'cripto_bitcoin', 'cripto_ethereum', 'cripto_tether', 'cripto_solana'];
@@ -75,7 +75,7 @@ async function buildVariaciones(cot) {
 }
 
 router.get('/', h(async (req, res) => {
-  if (Date.now() - cache.timestamp < CACHE_TTL) {
+  if (Date.now() - cache.timestamp < config.exchange.cacheTtl) {
     return res.json(cache.data);
   }
 
