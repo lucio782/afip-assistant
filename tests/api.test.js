@@ -91,6 +91,16 @@ async function api(method, path, body, auth) {
   r = await api('GET', '/api/cotizaciones/historicos');
   check('historicos 200 (array)', r.status === 200 && Array.isArray(r.json), r.text.slice(0, 100));
 
+  r = await api('GET', '/api/cotizaciones');
+  check('cotizaciones: euro/criptos presente', r.status === 200 && r.json.euro && r.json.criptos && r.json.criptos.bitcoin !== undefined, r.text.slice(0, 100));
+
+  console.log('\n== NOTICIAS ==');
+  r = await api('GET', '/api/news');
+  check('noticias 200 con local/int/cripto', r.status === 200 && Array.isArray(r.json.local) && Array.isArray(r.json.internacional) && Array.isArray(r.json.cripto), r.text.slice(0, 100));
+
+  r = await api('GET', '/api/news?categoria=cripto');
+  check('noticias por categoría cripto', r.status === 200 && Array.isArray(r.json) && r.json.length > 0, r.text.slice(0, 100));
+
   console.log('\n== MONOTRIBUTO ==');
   r = await api('GET', '/api/monotributo/categorias');
   check('categorias 200', r.status === 200 && Array.isArray(r.json), r.text.slice(0, 100));
