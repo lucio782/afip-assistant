@@ -6,10 +6,11 @@ async function fetchJson(url, timeout = 10000) {
 }
 
 async function getCotizaciones() {
-  const [bluelytics, fx, crypto] = await Promise.allSettled([
+  const [bluelytics, fx, crypto, dolarapi] = await Promise.allSettled([
     fetchJson('https://api.bluelytics.com.ar/v2/latest'),
     fetchJson('https://open.er-api.com/v6/latest/USD'),
     fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin%2Cethereum%2Ctether%2Csolana&vs_currencies=ars%2Cusd'),
+    fetchJson('https://dolarapi.com/v1/dolares'),
   ]);
 
   const base = {
@@ -31,16 +32,27 @@ async function getCotizaciones() {
     },
   };
 
+  const dolarapiMap = {};
+  if (dolarapi.status === 'fulfilled' && Array.isArray(dolarapi.value)) {
+    for (const item of dolarapi.value) dolarapiMap[item.casa || item.moneda] = item;
+  }
+  const da = (key, val) => dolarapiMap[key]?.venta || dolarapiMap[key]?.compra || null;
+  const daAvg = (key) => dolarapiMap[key]?.compra && dolarapiMap[key]?.venta ? Math.round(((dolarapiMap[key].compra + dolarapiMap[key].venta) / 2) * 100) / 100 : da(key, null);
+
   if (bluelytics.status === 'fulfilled') {
     const data = bluelytics.value;
     const blue = data.blue || {};
     const oficial = data.oficial || {};
     base.blue = { buy: blue.value_buy || null, sell: blue.value_sell || null };
     base.oficial = { buy: oficial.value_buy || null, sell: oficial.value_sell || null };
-    base.tarjeta = { value: oficial.value_sell ? Math.round(oficial.value_sell * 1.65 * 100) / 100 : null };
-    base.mep = { value: data.mep?.value_avg || data.mep?.value || null };
-    base.ccl = { value: data.ccl?.value_avg || data.ccl?.value || null };
-    base.mayorista = { value: oficial.value_sell ? Math.round((oficial.value_sell - 0.2) * 100) / 100 : null };
+    base.mayorista = { value: daAvg('mayorista') || (oficial.value_sell ? Math.round((oficial.value_sell - 0.2) * 100) / 100 : null) };
+  }
+
+  base.mep = { value: daAvg('bolsa') || base.mep?.value || null };
+  base.ccl = { value: daAvg('contadoconliqui') || base.ccl?.value || null };
+  base.tarjeta = { value: da('tarjeta') || base.tarjeta?.value || null };
+  if (dolarapi.status === 'rejected' || !dolarapiMap.oficial) {
+    if (!base.tarjeta.value && base.oficial.sell) base.tarjeta.value = Math.round(base.oficial.sell * 1.65 * 100) / 100;
   }
 
   const dolarOficial = base.oficial.sell || base.oficial.buy || base.blue.sell;
