@@ -1,26 +1,83 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ARCA Assistant — Calculadora de Monotributo, Dólar en vivo y Gastos | Gratis</title>
-<meta name="description" content="Calculadora de categoría de Monotributo 2026, dólar blue y oficial en vivo, control de gastos ilimitado, alertas de vencimientos, inflación y sueldo neto. Gratis y sin límites.">
-<meta name="keywords" content="calculadora monotributo 2026, categoria monotributo, recategorizacion, dolares blue hoy, vencimiento monotributo, sueldo neto, inflacion argentina, gastos, arca ex afip">
+<meta name="description" content="Calculadora de categoría de Monotributo 2026 (ARCA, ex AFIP), dólar blue, oficial, tarjeta, MEP y CCL en vivo, criptos, euro, yen, control de gastos ilimitado, alertas de vencimientos, inflación y sueldo neto. Gratis y sin límites.">
+<meta name="keywords" content="calculadora monotributo 2026, categoria monotributo, recategorizacion, dolares blue hoy, dolar mep, dolar ccl, cripto bitcoin, vencimiento monotributo, sueldo neto, inflacion argentina, gastos, arca ex afip">
 <meta name="author" content="ARCA Assistant">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0f172a">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="canonical" href="https://calculararca.duckdns.org/">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ARCA Assistant">
+<meta property="og:locale" content="es_AR">
 <meta property="og:title" content="ARCA Assistant — Monotributo, Dólar y Gastos, gratis">
-<meta property="og:description" content="Calculadora de Monotributo 2026 (ARCA, ex AFIP), dólar en vivo, gastos ilimitados y alertas de vencimientos. 100% gratis.">
+<meta property="og:description" content="Calculadora de Monotributo 2026 (ARCA, ex AFIP), dólar en vivo, criptos, gastos ilimitados y alertas de vencimientos. 100% gratis.">
 <meta property="og:url" content="https://calculararca.duckdns.org/">
-<meta property="og:image" content="https://calculararca.duckdns.org/favicon.svg">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://calculararca.duckdns.org/og-image.svg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ARCA Assistant — Monotributo, Dólar y Gastos, gratis">
-<meta name="twitter:description" content="Calculadora de Monotributo 2026 (ARCA, ex AFIP), dólar en vivo, gastos ilimitados y alertas de vencimientos. 100% gratis.">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<meta name="twitter:description" content="Calculadora de Monotributo 2026 (ARCA, ex AFIP), dólar en vivo, criptos, gastos ilimitados y alertas de vencimientos. 100% gratis.">
+<meta name="twitter:image" content="https://calculararca.duckdns.org/og-image.svg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "ARCA Assistant",
+  "url": "https://calculararca.duckdns.org/",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "es-AR",
+  "description": "Calculadora de categoría de Monotributo 2026, dólar en vivo, criptos, control de gastos y alertas de vencimientos. Gratis.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "ARS" },
+  "author": { "@type": "Person", "name": "Lucio" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué es el Monotributo?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Régimen impositivo simplificado argentino para pequeños contribuyentes. Unifica varios impuestos en una sola cuota mensual. Hay 11 categorías (A a K)." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo sé mi categoría de Monotributo?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Usá la calculadora de ARCA Assistant: ingresás tus ingresos anuales y te decimos qué categoría te corresponde y cuánto pagás." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es la recategorización del Monotributo?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Cambio de categoría cuando tus ingresos varían. Se hace cada 6 meses (enero y julio)." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuánto cuesta ARCA Assistant?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Nada. Todas las funciones son gratis e ilimitadas: gastos, alertas, exportación, cotizaciones y herramientas." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿De dónde vienen las cotizaciones?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Dólar: API pública de Bluelytics y DolarAPI. Euro y yen: tipos de cambio internacionales. Criptos: CoinGecko y Binance. Se actualizan cada 60 segundos." }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Es un sitio oficial de AFIP o ARCA?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Es una herramienta independiente hecha por un desarrollador. Los datos oficiales están siempre en la página de ARCA." }
+    }
+  ]
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0f172a;--surface:#1e293b;--text:#e2e8f0;--text2:#94a3b8;--border:#334155;--primary:#3b82f6;--primary-hover:#2563eb;--success:#22c55e;--danger:#ef4444;--accent:#f59e0b;--premium:linear-gradient(135deg,#f59e0b,#eab308);--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.3)}

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22c55e"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect y="0" width="1200" height="8" fill="url(#bar)"/>
+  <circle cx="1040" cy="120" r="180" fill="#3b82f6" opacity="0.15"/>
+  <text x="80" y="130" font-family="system-ui, sans-serif" font-size="44" font-weight="800" fill="#3b82f6">ARCA</text>
+  <text x="220" y="130" font-family="system-ui, sans-serif" font-size="44" font-weight="800" fill="#e2e8f0">Assistant</text>
+  <text x="80" y="210" font-family="system-ui, sans-serif" font-size="64" font-weight="800" fill="#ffffff">Calculadora de Monotributo 2026</text>
+  <text x="80" y="280" font-family="system-ui, sans-serif" font-size="40" font-weight="600" fill="#94a3b8">Dólar en vivo · Euro · Yen · Criptos · Noticias</text>
+  <text x="80" y="350" font-family="system-ui, sans-serif" font-size="32" fill="#e2e8f0">Registrá tus gastos, exportá a CSV y controlá tus vencimientos.</text>
+  <text x="80" y="410" font-family="system-ui, sans-serif" font-size="32" fill="#22c55e">100% gratis, sin límites.</text>
+  <rect x="80" y="470" width="360" height="80" rx="40" fill="#3b82f6"/>
+  <text x="260" y="520" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="700" fill="#ffffff">calculararca.duckdns.org</text>
+  <text x="80" y="590" font-family="system-ui, sans-serif" font-size="24" fill="#64748b">Hecho por Lucio · Herramienta independiente, no es sitio oficial de ARCA (ex AFIP).</text>
+</svg>
