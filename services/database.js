@@ -66,6 +66,7 @@ async function initPostgres(connectionString) {
     if (!cols.includes('email')) await client.query(`ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''`);
     if (!cols.includes('tier')) await client.query(`ALTER TABLE users ADD COLUMN tier TEXT DEFAULT 'free'`);
     if (!cols.includes('name')) await client.query(`ALTER TABLE users ADD COLUMN name TEXT DEFAULT ''`);
+    if (!cols.includes('email_alerts')) await client.query(`ALTER TABLE users ADD COLUMN email_alerts INTEGER DEFAULT 1`);
   } finally {
     client.release();
   }
@@ -134,6 +135,7 @@ async function initSQLite() {
     if (!cols.includes('email')) db.run("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''");
     if (!cols.includes('tier')) db.run("ALTER TABLE users ADD COLUMN tier TEXT DEFAULT 'free'");
     if (!cols.includes('name')) db.run("ALTER TABLE users ADD COLUMN name TEXT DEFAULT ''");
+    if (!cols.includes('email_alerts')) db.run("ALTER TABLE users ADD COLUMN email_alerts INTEGER DEFAULT 1");
   } catch (e) { console.error('Migración de schema falló:', e.message); }
   save();
   console.log('SQLite conectado');
@@ -219,6 +221,20 @@ async function updateUserTier(userId, tier, mpData = {}) {
     [tier, mpData.mercadopago_id || '', mpData.subscription_id || '', mpData.subscription_status || 'active', userId]);
 }
 
+async function getEmailAlerts(userId) {
+  const u = await getUser(userId);
+  return u ? Number(u.email_alerts) !== 0 : false;
+}
+
+async function setEmailAlerts(userId, value) {
+  await query('UPDATE users SET email_alerts = $1 WHERE id = $2', [value ? 1 : 0, userId]);
+  return getEmailAlerts(userId);
+}
+
+async function getUsersForEmailAlerts() {
+  return query("SELECT id, name, email FROM users WHERE email <> '' AND email IS NOT NULL AND email_alerts = 1");
+}
+
 // ===== EXPENSES =====
 async function addExpense(userId, expense) {
   const id = expense.id || uuidv4();
@@ -233,6 +249,10 @@ async function getExpense(id) {
 
 async function getExpenses(userId, limit = 50, offset = 0) {
   return query('SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC, created_at DESC LIMIT $2 OFFSET $3', [userId, limit, offset]);
+}
+
+async function getExpensesSince(userId, since) {
+  return query('SELECT * FROM expenses WHERE user_id = $1 AND date >= $2 ORDER BY date ASC', [userId, since]);
 }
 
 async function deleteExpense(id, userId) {
@@ -397,7 +417,8 @@ async function incrementRateLimit(userId) {
 
 module.exports = { init, save, close,
   getUser, getUserByEmail, createUser, getOrCreateUser, updateUserTier,
-  addExpense, getExpense, getExpenses, deleteExpense, getExpenseSummary,
+  getEmailAlerts, setEmailAlerts, getUsersForEmailAlerts,
+  addExpense, getExpense, getExpenses, getExpensesSince, deleteExpense, getExpenseSummary,
   saveExchangeRate, getExchangeHistory,
   createAlert, getUserAlerts,
   checkRateLimit, incrementRateLimit,

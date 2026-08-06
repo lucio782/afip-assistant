@@ -4,6 +4,7 @@ const database = require('../services/database');
 const { requireTier } = require('../services/tier');
 const { requireAuth } = require('../services/auth');
 const config = require('../config');
+const mailer = require('../services/mailer');
 
 const router = express.Router();
 const h = require('../services/asyncHandler');
@@ -48,6 +49,19 @@ router.post('/simular-vencimientos', requireAuth, requireTier('alerts'), h(async
   } catch {}
 
   res.json({ alerts_creadas: alerts.length, alerts, fecha: today });
+}));
+
+router.get('/email/status', requireAuth, requireTier('alerts'), h(async (req, res) => {
+  res.json({ enabled: await database.getEmailAlerts(req.userId), configurado: mailer.isConfigured() });
+}));
+
+router.post('/email/toggle', requireAuth, requireTier('alerts'), h(async (req, res) => {
+  const enabled = Boolean(req.body && req.body.enabled);
+  if (!mailer.isConfigured()) {
+    return res.status(503).json({ error: 'Los recordatorios por email no están configurados aún. Pronto.', enabled });
+  }
+  const state = await database.setEmailAlerts(req.userId, enabled);
+  res.json({ enabled: state });
 }));
 
 module.exports = router;

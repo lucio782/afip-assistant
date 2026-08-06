@@ -5,6 +5,8 @@ const compression = require('compression');
 const cors = require('cors');
 const database = require('./services/database');
 const config = require('./config');
+const mailer = require('./services/mailer');
+const vencimientosService = require('./services/vencimientos');
 
 const app = express();
 const PORT = config.app.port;
@@ -52,8 +54,14 @@ app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1h',
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
+    if (filePath.endsWith('manifest.webmanifest') || filePath.endsWith('sw.js')) res.setHeader('Cache-Control', 'no-cache');
   },
 }));
+
+app.get('/manifest.webmanifest', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.sendFile(path.join(__dirname, 'public', 'manifest.webmanifest'));
+});
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/monotributo', require('./routes/monotributo'));
@@ -95,6 +103,37 @@ function startAutoSave() {
   }, config.app.autoSaveMs);
 }
 
+// ===== Recordatorios de vencimientos por email (1 vez por usuario por día) =====
+const lastReminderSent = {};
+async function sendVencimientoReminders() {
+  try {
+    if (!mailer.isConfigured()) return;
+    const upcoming = vencimientosService.getUpcoming(7);
+    if (!upcoming.length) return;
+    const users = await database.getUsersForEmailAlerts();
+    if (!users.length) return;
+    const today = new Date().toISOString().split('T')[0];
+    const lista = upcoming.map(v => '• <strong>' + v.concepto + '</strong>: ' + v.fecha).join('<br>');
+    let enviados = 0;
+    for (const u of users) {
+      const key = u.id + ':' + today;
+      if (lastReminderSent[key]) continue;
+      const html = '<div style="font-family:system-ui,sans-serif;max-width:560px;margin:auto">' +
+        '<h2 style="color:#3b82f6">' + config.app.name + '</h2>' +
+        '<p>Hola' + (u.name ? ' ' + u.name : '') + ', estos son los próximos vencimientos:</p>' +
+        '<p>' + lista + '</p>' +
+        '<p style="font-size:.85rem;color:#64748b">Podés desactivar estos recordatorios desde la pestaña Alertas de la app.</p>' +
+        '<p style="font-size:.75rem;color:#94a3b8">' + config.app.name + ' no es un sitio oficial de ARCA (ex AFIP).</p></div>';
+      await mailer.send({ to: u.email, subject: 'Recordatorio: vencimientos próximos', html });
+      lastReminderSent[key] = 1;
+      enviados++;
+    }
+    if (enviados) console.log('Recordatorios por email enviados: ' + enviados);
+  } catch (e) {
+    console.error('Error en recordatorio de vencimientos:', e && e.message);
+  }
+}
+
 async function shutdown(signal) {
   console.log(`\n${signal} recibido. Cerrando...`);
   clearInterval(autoSaveInterval);
@@ -112,10 +151,13 @@ process.on('uncaughtException', (err) => {
 
 database.init().then(() => {
   startAutoSave();
+  setInterval(sendVencimientoReminders, 12 * 60 * 60 * 1000);
+  setTimeout(sendVencimientoReminders, 15000);
   app.listen(PORT, HOST, () => {
     console.log(`${config.app.name} v${config.app.version} corriendo en http://localhost:${PORT}`);
     console.log(`Modo: ${process.env.DATABASE_URL ? 'produccion (PostgreSQL)' : 'desarrollo (SQLite)'}`);
     console.log(`MP: ${process.env.MP_ACCESS_TOKEN ? 'real' : 'simulado'}`);
+    console.log(`Email: ${mailer.isConfigured() ? 'configurado' : 'desactivado (sin SMTP)'}`);
   });
 }).catch(err => {
   console.error('Error al iniciar:', err);

@@ -70,4 +70,52 @@ router.post('/resumen', requireAuth, h(async (req, res) => {
   });
 }));
 
+router.post('/evolucion', requireAuth, h(async (req, res) => {
+  const meses = Math.min(Math.max(parseInt(req.body.meses) || 6, 2), 24);
+  const now = new Date();
+  const inicio = new Date(now.getFullYear(), now.getMonth() - (meses - 1), 1);
+  const since = inicio.getFullYear() + '-' + String(inicio.getMonth() + 1).padStart(2, '0');
+
+  let blueSell = 1;
+  try {
+    const c = await getCotizaciones();
+    if (c && c.blue && c.blue.sell) blueSell = c.blue.sell;
+  } catch {}
+
+  const gastos = await database.getExpensesSince(req.userId, since);
+
+  const etiquetas = [];
+  for (let i = 0; i < meses; i++) {
+    const d = new Date(inicio.getFullYear(), inicio.getMonth() + i, 1);
+    etiquetas.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+
+  const porCategoria = {};
+  const totales = new Array(meses).fill(0);
+  for (const e of gastos) {
+    const mes = String(e.date || '').slice(0, 7);
+    const idx = etiquetas.indexOf(mes);
+    if (idx === -1) continue;
+    const enARS = e.currency === 'USD' ? Number(e.amount) * blueSell : Number(e.amount);
+    if (!Number.isFinite(enARS)) continue;
+    const cat = (e.category || 'otros').toString() || 'otros';
+    if (!porCategoria[cat]) porCategoria[cat] = new Array(meses).fill(0);
+    porCategoria[cat][idx] += enARS;
+    totales[idx] += enARS;
+  }
+
+  const mesesNombres = etiquetas.map(e => {
+    const [y, m] = e.split('-');
+    return ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][Number(m) - 1] + ' ' + y.slice(2);
+  });
+
+  res.json({
+    meses: mesesNombres,
+    desde: since,
+    blueSell: Math.round(blueSell),
+    totales: totales.map(t => Math.round(t)),
+    porCategoria: Object.fromEntries(Object.entries(porCategoria).map(([k, v]) => [k, v.map(x => Math.round(x))])),
+  });
+}));
+
 module.exports = router;

@@ -82,4 +82,14 @@ module.exports = {
     // En producción (con DATABASE_URL) el mock de pagos queda desactivado por seguridad.
     mock: envNum('PAYMENTS_MOCK', env('DATABASE_URL', null) ? 0 : 1),
   },
+
+  mail: {
+    // Recordatorios de vencimientos por email. Dejar HOST vacío desactiva el envío.
+    host: env('SMTP_HOST', ''),
+    port: envNum('SMTP_PORT', 587),
+    secure: env('SMTP_SECURE', 'false') === 'true',
+    user: env('SMTP_USER', ''),
+    pass: env('SMTP_PASS', ''),
+    from: env('SMTP_FROM', env('APP_NAME', 'ARCA Assistant') + ' <no-reply@calculararca.duckdns.org>'),
+  },
 };

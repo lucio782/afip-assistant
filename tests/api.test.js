@@ -75,6 +75,12 @@ async function api(method, path, body, auth) {
   r = await api('POST', '/api/gastos/resumen', { month: new Date().getMonth() + 1, year: new Date().getFullYear() });
   check('resumen sin token 401', r.status === 401);
 
+  r = await api('POST', '/api/gastos/evolucion', { meses: 6 }, true);
+  check('evolucion 200', r.status === 200 && Array.isArray(r.json.meses) && r.json.meses.length === 6 && typeof r.json.totales === 'object', r.text.slice(0, 100));
+
+  r = await api('POST', '/api/gastos/evolucion', { meses: 6 });
+  check('evolucion sin token 401', r.status === 401);
+
   console.log('\n== ELIMINAR GASTO ==');
   r = await api('DELETE', '/api/gastos/' + expId, null, true);
   check('borrar gasto 200', r.status === 200, r.text);
@@ -108,6 +114,15 @@ async function api(method, path, body, auth) {
   r = await api('GET', '/api/monotributo/categorias');
   check('categorias 200', r.status === 200 && Array.isArray(r.json), r.text.slice(0, 100));
 
+  r = await api('POST', '/api/monotributo/calcular', { ingresosAnuales: 2000000, superficie: 40 });
+  check('calcular con verificacion', r.status === 200 && Array.isArray(r.json.verificacion) && r.json.verificacion.length >= 2 && r.json.recomendada, r.text.slice(0, 100));
+
+  r = await api('POST', '/api/monotributo/recategorizar', { categoriaActual: 'B', ingresosUltimos12: 1500000 });
+  check('recategorizar con verificacion', r.status === 200 && typeof r.json.puedePermanecer === 'boolean' && Array.isArray(r.json.verificacion), r.text.slice(0, 100));
+
+  r = await api('GET', '/api/monotributo/vencimientos');
+  check('vencimientos 200 (15 items)', r.status === 200 && Array.isArray(r.json) && r.json.length === 15, r.text.slice(0, 100));
+
   console.log('\n== PLANES / PAGOS (mock) ==');
   r = await api('GET', '/api/payments/planes');
   check('planes 200', r.status === 200 && Array.isArray(r.json), r.text.slice(0, 80));
@@ -131,9 +146,21 @@ async function api(method, path, body, auth) {
   r = await api('POST', '/api/alerts', { type: 'custom', title: 'Recordatorio', message: 'pagar' }, true);
   check('crear alerta 201', r.status === 201, r.text.slice(0, 100));
 
+  r = await api('GET', '/api/alerts/email/status', null, true);
+  check('email status 200', r.status === 200 && typeof r.json.enabled === 'boolean', r.text.slice(0, 100));
+
+  r = await api('POST', '/api/alerts/email/toggle', { enabled: false }, true);
+  check('email toggle sin SMTP 503', r.status === 503, r.text.slice(0, 100));
+
   console.log('\n== EXPORT (gratis) ==');
   r = await api('GET', '/api/export/gastos/csv', null, true);
   check('csv gastos 200', r.status === 200 && r.text.includes('Fecha'), r.text.slice(0, 80));
+
+  const resPdf = await fetch(BASE + '/api/export/gastos/pdf', { headers: { 'Authorization': 'Bearer ' + token } });
+  const pdfType = resPdf.headers.get('content-type') || '';
+  const pdfData = await resPdf.arrayBuffer();
+  const pdfOk = pdfData.byteLength > 200 && pdfType.includes('application/pdf');
+  check('pdf gastos 200 (pdf válido)', resPdf.status === 200 && pdfOk, pdfType + ' bytes=' + pdfData.byteLength);
 
   r = await api('GET', '/api/status');
   check('api/status 200', r.status === 200);

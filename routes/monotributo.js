@@ -1,5 +1,6 @@
 const express = require('express');
 const storage = require('../services/storage');
+const vencimientosService = require('../services/vencimientos');
 const router = express.Router();
 
 function findCategoryByParam(cats, param, value) {
@@ -7,6 +8,23 @@ function findCategoryByParam(cats, param, value) {
     if (value <= cat[param]) return cat;
   }
   return cats[cats.length - 1];
+}
+
+// Verifica cada parámetro contra los límites de una categoría.
+// valores: { ingresos, superficie, energia, alquilerMensual } (null si no se informó)
+function verificarParametros(categoria, valores) {
+  const checks = [
+    { parametro: 'Ingresos anuales', valor: valores.ingresos, limite: categoria.maxIncome, key: 'maxIncome', activo: valores.ingresos != null },
+    { parametro: 'Superficie', valor: valores.superficie, limite: categoria.maxArea, key: 'maxArea', activo: valores.superficie != null },
+    { parametro: 'Energía anual (kWh)', valor: valores.energia, limite: categoria.maxEnergy, key: 'maxEnergy', activo: valores.energia != null },
+    { parametro: 'Alquiler anual', valor: valores.alquilerMensual != null ? valores.alquilerMensual * 12 : null, limite: categoria.maxRent, key: 'maxRent', activo: valores.alquilerMensual != null },
+  ];
+  return checks.filter(c => c.activo).map(c => ({
+    parametro: c.parametro,
+    valor: c.valor,
+    limite: c.limite,
+    ok: c.valor <= c.limite,
+  }));
 }
 
 router.get('/categorias', (req, res) => {
@@ -48,6 +66,7 @@ router.post('/calcular', (req, res) => {
     categoria: recomendada,
     ingresosAnuales: ingresos,
     puedeExcluirse,
+    verificacion: verificarParametros(recomendada, { ingresos, superficie: sup, energia: ener, alquilerMensual: alq }),
     costosMensuales: {
       total: recomendada.monthlyFee + recomendada.retirement + recomendada.obraSocial,
       monotributo: recomendada.monthlyFee,
@@ -97,35 +116,14 @@ router.post('/recategorizar', (req, res) => {
     cambia: sube || baja,
     tipoCambio: sube ? 'sube' : baja ? 'baja' : 'sin cambios',
     ingresosUltimos12: ingresos,
+    puedePermanecer: !sube && !baja && verificarParametros(currentCat, { ingresos, superficie: sup, energia: ener, alquilerMensual: alq }).every(c => c.ok),
+    verificacion: verificarParametros(sugerida, { ingresos, superficie: sup, energia: ener, alquilerMensual: alq }),
     sugerida,
   });
 });
 
 router.get('/vencimientos', (req, res) => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-
-  // Simplified calendar - real one varies by CUIT ending
-  const vencimientos = [
-    { mes: `${year}-01`, concepto: 'Monotributo enero', fecha: '20/01/' + year },
-    { mes: `${year}-02`, concepto: 'Monotributo febrero', fecha: '19/02/' + year },
-    { mes: `${year}-03`, concepto: 'Monotributo marzo', fecha: '20/03/' + year },
-    { mes: `${year}-04`, concepto: 'Monotributo abril', fecha: '18/04/' + year },
-    { mes: `${year}-05`, concepto: 'Monotributo mayo', fecha: '20/05/' + year },
-    { mes: `${year}-06`, concepto: 'Monotributo junio', fecha: '20/06/' + year },
-    { mes: `${year}-07`, concepto: 'Monotributo julio', fecha: '20/07/' + year },
-    { mes: `${year}-08`, concepto: 'Monotributo agosto', fecha: '20/08/' + year },
-    { mes: `${year}-09`, concepto: 'Monotributo septiembre', fecha: '20/09/' + year },
-    { mes: `${year}-10`, concepto: 'Monotributo octubre', fecha: '20/10/' + year },
-    { mes: `${year}-11`, concepto: 'Monotributo noviembre', fecha: '20/11/' + year },
-    { mes: `${year}-12`, concepto: 'Monotributo diciembre', fecha: '20/12/' + year },
-    { mes: year + ' (anual)', concepto: 'Bienes Personales', fecha: '31/03/' + (year + 1) },
-    { mes: year + ' (anual)', concepto: 'Ganancias Personas Físicas', fecha: '15/04/' + (year + 1) },
-    { mes: `C/${year}`, concepto: 'IVA mensual (respon. inscripto)', fecha: '18/' + String(month).padStart(2, '0') + '/' + year },
-  ];
-
-  res.json(vencimientos);
+  res.json(vencimientosService.getVencimientos(new Date().getFullYear()));
 });
 
 module.exports = router;

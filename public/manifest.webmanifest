@@ -1,0 +1,17 @@
+{
+  "name": "ARCA Assistant — Monotributo, Dólar y Gastos",
+  "short_name": "ARCA Assistant",
+  "description": "Calculadora de Monotributo 2026, dólar en vivo, criptos, control de gastos y alertas de vencimientos. Gratis.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "es-AR",
+  "categories": ["finance", "business", "utilities"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
