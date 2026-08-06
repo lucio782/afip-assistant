@@ -196,6 +196,14 @@ async function api(method, path, body, auth) {
     const res2 = await fetch(BASE + '/api/metrics', { headers: { 'x-admin-key': adminKey } });
     const j2 = await res2.json();
     check('metrics con key 200', res2.status === 200 && typeof j2.usuarios === 'number' && typeof j2.visitas?.total === 'number', JSON.stringify(j2).slice(0, 100));
+    check('metrics con fuentes', res2.status === 200 && Array.isArray(j2.fuentes?.hoy) && Array.isArray(j2.fuentes?.ultimos7Dias), String(JSON.stringify(j2.fuentes)).slice(0, 80));
+
+    const res3 = await fetch(BASE + '/api/metrics/diario?dias=14', { headers: { 'x-admin-key': adminKey } });
+    const j3 = await res3.json();
+    check('metrics diario 200', res3.status === 200 && Array.isArray(j3) && j3.every(r => typeof r.count !== 'undefined'), JSON.stringify(j3).slice(0, 100));
+
+    r = await api('GET', '/api/metrics/diario?dias=14');
+    check('metrics diario sin key 401', r.status === 401);
   } else {
     console.log('  SKIP (definí ADMIN_KEY para probar métricas)');
   }

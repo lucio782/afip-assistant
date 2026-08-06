@@ -10,11 +10,11 @@ Copiá y pegá. NO spamees: 1 post por comunidad, respondé todos los comentario
 Hola gente, soy Lucio. Les comparto algo que estuve armando para monotributistas y gente que arranca con ARCA (ex AFIP): **ARCA Assistant** (https://calculararca.duckdns.org).
 
 Qué hace:
-- Te dice tu categoría de Monotributo según ingresos, superficie, energía y alquiler (tabla 2026 actualizada)
-- Simulador de recategorización y calendario de vencimientos
+- Te dice tu categoría de Monotributo según ingresos, superficie, energía y alquiler (tabla 2026 actualizada), con verificación por parámetro
+- Simulador de recategorización, calendario de vencimientos y recordatorios por email
 - Dólar blue, oficial, tarjeta, MEP y CCL en vivo con histórico
-- Registro de gastos ilimitado (ARS/USD) con resumen mensual y exportación a CSV
-- Alertas de vencimiento y períodos de recategorización
+- Registro de gastos ilimitado (ARS/USD) con gráficos de evolución mensual y exportación a CSV y PDF
+- Se instala en el celular como app (PWA), con modo claro y oscuro
 - Calculadoras de sueldo neto, inflación y préstamos
 
 Es **100% gratis y sin límites** (no hay versión paga ni planes). Los datos se guardan por cuenta y son privados.

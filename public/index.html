@@ -310,6 +310,16 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
       </div>
     </div>
   </div>
+  <div class="card">
+    <h2>📣 Difundí ARCA Assistant</h2>
+    <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Compartila con otros monotributistas. Es gratis para ellos también, y así ayudás a que crezca.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="shareWhatsApp()">📱 WhatsApp</button>
+      <button class="btn btn-outline btn-sm" onclick="shareInstagram()">📸 Link para Instagram</button>
+      <button class="btn btn-outline btn-sm" onclick="copyAppLink()">🔗 Copiar link</button>
+      <button class="btn btn-outline btn-sm" onclick="openInstagram()">👤 Seguir mi Instagram</button>
+    </div>
+  </div>
 </section>
 
 <!-- ===== MONOTRIBUTO ===== -->
@@ -537,7 +547,7 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
 <footer>
   <div class="brand">🏛️ ARCA Assistant</div>
   <div>ARCA Assistant no es un sitio oficial de ARCA (ex AFIP). Los valores de cuotas, categorías y vencimientos son orientativos y pueden cambiar por disposiciones oficiales.<br>Tus datos son privados y solo los ves vos con tu cuenta.</div>
-  <div style="margin-top:8px;color:var(--text2);font-size:.75rem">Hecho por Lucio</div>
+  <div style="margin-top:8px;color:var(--text2);font-size:.75rem">Hecho por Lucio · <a id="igFooterLink" href="#" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none">Instagram</a></div>
 </footer>
 
 <script>
@@ -575,8 +585,31 @@ function toggleTheme() {
   try { localStorage.setItem('afip_theme', next); } catch {}
   const m = document.querySelector('meta[name="theme-color"]');
   if (m) m.setAttribute('content', next === 'light' ? '#f4f6fb' : '#0f172a');
-  setThemeButton();
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {});
+setThemeButton();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+// ===== DIFUSIÓN / COMPARTIR =====
+const APP_URL = 'https://calculararca.duckdns.org';
+const IG_HANDLE = 'tucuenta'; // TODO: poné tu handle de Instagram (sin @)
+function copyText(t, ok) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(() => toast(ok), () => toast('Copiá el link manualmente: ' + t));
+  } else {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast(ok); } catch {}
+    document.body.removeChild(ta);
+  }
+}
+function shareWhatsApp() { const txt = encodeURIComponent('Calculadora de Monotributo 2026, dólar en vivo y gastos. 100% gratis 👉 ' + APP_URL + '/?utm_source=whatsapp'); window.open('https://wa.me/?text=' + txt, '_blank', 'noopener'); }
+function shareInstagram() { copyText(APP_URL + '/?utm_source=instagram', '📸 Link copiado. Pegalo en tu post o story.'); }
+function copyAppLink() { copyText(APP_URL + '/?utm_source=link', '✅ Link copiado'); }
+function openInstagram() { if (IG_HANDLE && IG_HANDLE !== 'tucuenta') window.open('https://instagram.com/' + IG_HANDLE, '_blank', 'noopener'); else toast('Configurá tu handle de Instagram en el código (IG_HANDLE)'); }
+function initShare() {
+  const fl = $('igFooterLink');
+  if (fl && IG_HANDLE && IG_HANDLE !== 'tucuenta') fl.href = 'https://instagram.com/' + IG_HANDLE;
+}
+initShare();
 }
 setThemeButton();
 

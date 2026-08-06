@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ARCA Assistant — Métricas (admin)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--surface:#1e293b;--text:#e2e8f0;--text2:#94a3b8;--border:#334155;--primary:#3b82f6;--success:#22c55e;--danger:#ef4444;--accent:#f59e0b;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.3)}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+h1{font-size:1.2rem}
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);text-align:center}
+.stat .v{font-size:1.6rem;font-weight:800;margin-top:4px}
+.stat .l{font-size:.7rem;color:var(--text2);text-transform:uppercase;font-weight:600}
+.chart-wrap{height:240px}
+input{padding:8px 12px;border:2px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;outline:none;width:100%;margin-bottom:10px}
+button{padding:8px 18px;border-radius:20px;font-size:.85rem;font-weight:600;border:none;cursor:pointer;background:var(--primary);color:#fff}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.row:last-child{border:none}
+.row .l{color:var(--text2)}
+.badge{font-size:.7rem;background:var(--primary);color:#fff;padding:2px 10px;border-radius:12px;margin-left:6px}
+.hidden{display:none}
+.err{color:var(--danger);font-size:.8rem;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📊 ARCA Assistant — Métricas</h1>
+    <button onclick="logout()">🔒 Salir</button>
+  </header>
+
+  <div id="loginBox" class="card">
+    <h2 style="font-size:1rem;margin-bottom:10px">🔑 Clave de administrador</h2>
+    <input id="adminKeyInput" type="password" placeholder="ADMIN_KEY (la que está en el servidor)" autocomplete="off">
+    <button onclick="load()">Ver métricas</button>
+    <div id="loginErr" class="err hidden"></div>
+  </div>
+
+  <div id="panel" class="hidden">
+    <div class="grid" id="kpis"></div>
+
+    <div class="card">
+      <h2 style="font-size:1rem;margin-bottom:12px">📈 Visitas por día (últimos 14)</h2>
+      <div class="chart-wrap"><canvas id="visitsChart"></canvas></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <h2 style="font-size:1rem;margin-bottom:12px">📍 Origen de visitas — Hoy</h2>
+        <div id="fuentesHoy"></div>
+      </div>
+      <div class="card">
+        <h2 style="font-size:1rem;margin-bottom:12px">📍 Origen de visitas — 7 días</h2>
+        <div id="fuentes7"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1rem;margin-bottom:8px">🔎 Detalle</h2>
+      <div id="detalle"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+let chart = null;
+const $ = id => document.getElementById(id);
+
+function apiKey() { return localStorage.getItem('arca_admin_key') || ''; }
+function logout() { localStorage.removeItem('arca_admin_key'); location.reload(); }
+
+(async function init() {
+  if (apiKey()) { load(); }
+})();
+
+async function load() {
+  const key = $('adminKeyInput').value || apiKey();
+  $('loginErr').classList.add('hidden');
+  try {
+    const res = await fetch('/api/metrics', { headers: { 'x-admin-key': key } });
+    if (!res.ok) { showErr('Clave inválida o métricas no disponibles (' + res.status + ')'); return; }
+    localStorage.setItem('arca_admin_key', key);
+    const m = await res.json();
+    render(m);
+    const res2 = await fetch('/api/metrics/diario?dias=14', { headers: { 'x-admin-key': key } });
+    if (res2.ok) renderChart(await res2.json());
+    $('loginBox').classList.add('hidden');
+    $('panel').classList.remove('hidden');
+  } catch { showErr('Error de conexión'); }
+}
+function showErr(msg) { $('loginErr').textContent = msg; $('loginErr').classList.remove('hidden'); }
+
+function kpi(label, value, color) {
+  return '<div class="stat"><div class="l">' + label + '</div><div class="v" style="color:' + (color || 'var(--text)') + '">' + value + '</div></div>';
+}
+function render(m) {
+  $('kpis').innerHTML =
+    kpi('Usuarios totales', m.usuarios, 'var(--primary)') +
+    kpi('Registrados hoy', m.registradosHoy, 'var(--success)') +
+    kpi('Activos 7 días', m.activosUltimos7Dias, 'var(--accent)') +
+    kpi('Gastos registrados', m.gastos) +
+    kpi('Alertas', m.alertas) +
+    kpi('Visitas hoy', m.visitas.hoy, 'var(--success)') +
+    kpi('Visitas 7 días', m.visitas.ultimos7Dias) +
+    kpi('Visitas totales', m.visitas.total) +
+    kpi('Únicos 7 días', m.visitantesUnicos.ultimos7Dias);
+
+  const row = (s, c) => '<div class="row"><span class="l">' + s + '</span><span>' + c + '</span></div>';
+  $('fuentesHoy').innerHTML = m.fuentes.hoy.length ? m.fuentes.hoy.map(f => row(f.source, f.count)).join('') : row('Sin datos', '—');
+  $('fuentes7').innerHTML = m.fuentes.ultimos7Dias.length ? m.fuentes.ultimos7Dias.map(f => row(f.source, f.count)).join('') : row('Sin datos', '—');
+
+  const registradosHoy = m.registradosHoy || 0;
+  const visitasHoy = m.visitas.hoy || 0;
+  const conversion = visitasHoy ? (100 * registradosHoy / visitasHoy).toFixed(1) + '%' : '—';
+  $('detalle').innerHTML =
+    row('Conversión visitas → registros (hoy)', conversion) +
+    row('Únicos hoy / total', m.visitantesUnicos.hoy + ' / ' + m.visitantesUnicos.total);
+}
+function renderChart(rows) {
+  const ctx = $('visitsChart').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, { type: 'bar', data: { labels: rows.map(r => r.date.slice(5)), datasets: [{ label: 'Visitas', data: rows.map(r => Number(r.count)), backgroundColor: '#3b82f6cc' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color: '#94a3b8', maxTicksLimit: 10 } }, y: { ticks: { color: '#94a3b8' } } } } });
+}
+</script>
+</body>
+</html>

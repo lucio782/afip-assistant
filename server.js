@@ -47,6 +47,8 @@ app.use((req, res, next) => {
       res.setHeader('Set-Cookie', config.security.visitorCookie + '=' + vv + '; Path=/; Max-Age=' + config.security.visitorCookieMaxAge + '; HttpOnly; SameSite=Lax' + secure);
     }
     database.incrementVisits(vv).catch(() => {});
+    const src = req.query.utm_source || req.query.ref || 'directo';
+    database.incrementSource(src).catch(() => {});
   }
   next();
 });

@@ -12,12 +12,12 @@ Objetivo: convertir ARCA Assistant en la herramienta gratuita de referencia para
 "Calculadora de Monotributo gratis. Sabé tu categoría, cuánto pagás y cuándo vence, sin vueltas. Incluye dólar blue en vivo, control de gastos y avisos de recategorización."
 
 ## Paso 0: Base sólida (antes de promocionar)
-- [ ] README.md en GitHub (qué es, capturas, link a la app)
-- [ ] Meta tags SEO + favicon + título en index.html
-- [ ] Sitemap.xml básico
-- [ ] Página en la app: "¿Qué es y para qué sirve?" (copy pensado para SEO)
-- [ ] Nombre de dominio (ej. afipassistant.com.ar) — prioridad si se va a compartir
-- [ ] Probar el flujo completo como usuario nuevo (registro → calcular → guardar gasto)
+- [x] README.md en GitHub (qué es, capturas, link a la app)
+- [x] Meta tags SEO + favicon + canonical + Open Graph + structured data (FAQ/WebApplication) en index.html
+- [x] Sitemap.xml básico + og-image para redes
+- [x] Página en la app: "¿Qué es y para qué sirve?" (copy pensado para SEO)
+- [ ] Nombre de dominio propio (ej. afipassistant.com.ar) — prioridad si se va a compartir
+- [x] Probar el flujo completo como usuario nuevo (registro → calcular → guardar gasto)
 
 ## Paso 1: Comunidades gratuitas (semanas 1-2)
 - Reddit: r/merval, r/argentina, r/empleos_AR, r/RepublicaArgentina, r/DesarrolloFreelance. Publicar como "Hice esta herramienta gratuita para monotributistas, ¿qué opinan?" (NO spamear; responder todo)
@@ -51,24 +51,24 @@ Formatos:
 - Publicar en directorios de herramientas: ToolFinder, Bento, There's An App For That
 
 ## Paso 5: Crecimiento interno (modelo 100% gratis)
-- Todas las funciones son gratis e ilimitadas (gastos, alertas, exportación). El valor es el servicio, no la restricción.
-- Email de bienvenida que muestre las 9 herramientas (recuperar registro)
-- Recordatorio de vencimiento por email/sms (cuando haya emails reales)
-- Referidos: "invitá a un amigo" (seguimiento opcional, no monetizado)
+- Todas las funciones son gratis e ilimitadas (gastos, alertas, exportación CSV/PDF, gráficos, recordatorios). El valor es el servicio, no la restricción.
+- [x] Recordatorios de vencimiento por email (implementados; falta activar SMTP, ver INSTAGRAM_KIT.md o el checklist)
+- [ ] Email de bienvenida que muestre las herramientas (recuperar registro) — pendiente de SMTP
+- [ ] Referidos: "invitá a un amigo" (seguimiento opcional, no monetizado)
 - A futuro, si se quiere monetizar sin romper la promesa gratis: donaciones, versión white-label o sponsor — NUNCA quitar funciones gratuitas existentes
 
 ## Paso 6: Métricas a mirar (para saber si funciona)
-- Usuarios registrados por día
-- Usuarios activos por semana (que usan 2+ herramientas)
-- Visitas → registros (meta: >10%)
-- Bounce en la landing
-- Semanal: anotar de dónde vino cada usuario (¿Reddit? ¿Google? ¿Directo?)
+- Usuarios registrados por día, usuarios activos por semana
+- Visitas → registros (meta: >10%), bounce en la landing
+- **Dashboard de métricas:** entrá a https://calculararca.duckdns.org/admin.html con la ADMIN_KEY → KPIs, visitas por día y origen de visitas
+- **Origen de visitas:** cada link compartido lleva ?utm_source= (whatsapp, instagram, link). Los botones de "Difundí ARCA Assistant" del dashboard ya lo agregan. Semanal: mirá qué canal trae más gente y duplicá ahí.
+- Semanal: anotar de dónde vino cada usuario (¿Reddit? ¿Google? ¿WhatsApp? ¿Instagram?)
 
 ## Calendario semanal sugerido (primer mes)
 - Lunes: 1 post en Reddit + responder
 - Miércoles: 1 thread en Twitter + 1 Reel
 - Viernes: 1 post en Facebook (grupo distinto) + responder
-- Domingo: revisar métricas, ajustar mensaje
+- Domingo: revisar métricas en /admin.html, ajustar mensaje según el canal que más trajo
 
 ## Lo que NO hacer
 - No pagar publicidad todavía (gastar $0 hasta probar tracción orgánica)

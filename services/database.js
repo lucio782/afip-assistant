@@ -59,6 +59,10 @@ async function initPostgres(connectionString) {
       rating INTEGER DEFAULT 5, comment TEXT DEFAULT '',
       created_at TIMESTAMP DEFAULT NOW()
     )`);
+    await client.query(`CREATE TABLE IF NOT EXISTS sources (
+      date TEXT NOT NULL, source TEXT NOT NULL, count INTEGER DEFAULT 0,
+      PRIMARY KEY (date, source)
+    )`);
     // Migrations: add missing columns on existing tables
     const { rows } = await client.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'users'`);
     const cols = rows.map(r => r.column_name);
@@ -124,6 +128,10 @@ async function initSQLite() {
     id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT DEFAULT '',
     rating INTEGER DEFAULT 5, comment TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS sources (
+    date TEXT NOT NULL, source TEXT NOT NULL, count INTEGER DEFAULT 0,
+    PRIMARY KEY (date, source)
   )`);
   // Migrations: add missing columns on existing tables
   try {
@@ -312,6 +320,22 @@ async function incrementVisits(vv = 'anon') {
   }
 }
 
+async function incrementSource(source, date) {
+  const d = date || todayArg();
+  const s = String(source || 'directo').slice(0, 40);
+  if (isPostgres) {
+    await query('INSERT INTO sources (date, source, count) VALUES ($1, $2, 1) ON CONFLICT (date, source) DO UPDATE SET count = sources.count + 1', [d, s]);
+  } else {
+    await query('INSERT OR IGNORE INTO sources (date, source, count) VALUES ($1, $2, 1)', [d, s]);
+    await query('UPDATE sources SET count = count + 1 WHERE date = $1 AND source = $2', [d, s]);
+  }
+}
+
+async function getVisitsSeries(days = 14) {
+  const start = daysAgoArg(Number(days) - 1);
+  return query('SELECT date, count FROM visits WHERE date >= $1 ORDER BY date ASC', [start]);
+}
+
 // ===== RESEÑAS =====
 async function addReview(userId, name, rating, comment) {
   const id = uuidv4();
@@ -374,7 +398,7 @@ async function getMetrics() {
     unicosTotalSql = "SELECT COUNT(*) AS n FROM (SELECT DISTINCT vv FROM visitors) t";
   }
 
-  const [usuarios, gastos, alertas, registradosHoy, activosUltimos7Dias, visitasHoy, total, ultimos7, unicosHoy, unicos7, unicosTotal] = await Promise.all([
+  const [usuarios, gastos, alertas, registradosHoy, activosUltimos7Dias, visitasHoy, total, ultimos7, unicosHoy, unicos7, unicosTotal, fuentesHoy, fuentes7] = await Promise.all([
     count('SELECT COUNT(*) AS n FROM users'),
     count('SELECT COUNT(*) AS n FROM expenses'),
     count('SELECT COUNT(*) AS n FROM alerts'),
@@ -386,6 +410,8 @@ async function getMetrics() {
     count(unicosHoySql, [today]),
     count(unicos7Sql, unicos7Params),
     count(unicosTotalSql),
+    query('SELECT source, SUM(count) AS count FROM sources WHERE date = $1 GROUP BY source ORDER BY count DESC', [today]),
+    query('SELECT source, SUM(count) AS count FROM sources WHERE date >= $1 GROUP BY source ORDER BY count DESC', [weekStart]),
   ]);
 
   return {
@@ -393,6 +419,10 @@ async function getMetrics() {
     registradosHoy, activosUltimos7Dias,
     visitas: { hoy: visitasHoy, ultimos7Dias: ultimos7, total },
     visitantesUnicos: { hoy: unicosHoy, ultimos7Dias: unicos7, total: unicosTotal },
+    fuentes: {
+      hoy: fuentesHoy.map(r => ({ source: r.source, count: Number(r.count) })),
+      ultimos7Dias: fuentes7.map(r => ({ source: r.source, count: Number(r.count) })),
+    },
   };
 }
 
@@ -422,5 +452,5 @@ module.exports = { init, save, close,
   saveExchangeRate, getExchangeHistory,
   createAlert, getUserAlerts,
   checkRateLimit, incrementRateLimit,
-  incrementVisits, getMetrics,
+  incrementVisits, incrementSource, getVisitsSeries, getMetrics,
   addReview, getReview, getReviews, deleteReview };
