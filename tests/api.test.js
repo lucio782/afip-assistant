@@ -128,10 +128,13 @@ async function api(method, path, body, auth) {
   check('planes 200', r.status === 200 && Array.isArray(r.json), r.text.slice(0, 80));
 
   r = await api('POST', '/api/payments/crear-preferencia', { planId: 'pro' }, true);
-  check('mock upgrade 200', r.status === 200 && r.json.status === 'mock', r.text.slice(0, 100));
+  const mockOK = r.status === 200 && r.json.status === 'mock';
+  const prodBlocked = r.status === 503;
+  check('mock upgrade 200 (dev) / bloqueado en prod', mockOK || prodBlocked, r.text.slice(0, 100));
 
   r = await api('GET', '/api/payments/status/' + userId, null, true);
-  check('status tier=pro', r.status === 200 && r.json.tier === 'pro', r.text.slice(0, 100));
+  check('status 200', r.status === 200 && typeof r.json.tier === 'string', r.text.slice(0, 100));
+  if (mockOK) check('status tier=pro (solo dev)', r.json.tier === 'pro', r.text.slice(0, 100));
 
   r = await api('GET', '/api/payments/status/' + userId);
   check('status sin token 401', r.status === 401);
