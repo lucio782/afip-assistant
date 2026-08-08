@@ -3,3 +3,4 @@ data/afip.db
 data/expenses.json
 .env
 *.log
+ESTADO_PROYECTO.md

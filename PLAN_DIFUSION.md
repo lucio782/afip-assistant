@@ -55,13 +55,20 @@ Formatos:
 - [x] Recordatorios de vencimiento por email (implementados; falta activar SMTP, ver INSTAGRAM_KIT.md o el checklist)
 - [ ] Email de bienvenida que muestre las herramientas (recuperar registro) — pendiente de SMTP
 - [ ] Referidos: "invitá a un amigo" (seguimiento opcional, no monetizado)
-- A futuro, si se quiere monetizar sin romper la promesa gratis: donaciones, versión white-label o sponsor — NUNCA quitar funciones gratuitas existentes
+
+## Paso 5b: Monetización (sin romper la promesa "100% gratis")
+La app ya tiene una sección "💛 Ayudanos a seguir gratis" en el dashboard que aparece solo si configurás las env vars en Render (ver .env.example). Formas ordenadas de menor a mayor esfuerzo:
+1. **Donaciones** — `DONAR_URL` = link de pago de MercadoPago ("invitá un café"). Activo hoy con 1 env var.
+2. **Referidos fintech** — `FINTECH_REFS=[{"nombre":"Mercado Pago","url":"https://tu-link-de-referido"}]` → botones "Abrí tu cuenta y ambos ganamos". CPA por alta. El público (monotributistas) es exacto.
+3. **Contador recomendado** — `CONTADOR_NOMBRE`, `CONTADOR_DESCRIPCION`, `CONTADOR_URL` → CPA por cliente derivado con un estudio contable.
+4. **A futuro (con tráfico):** AdSense, destacado pagado, white-label para estudios, versión Pro con features NUEVAS (nunca quitar las gratis).
 
 ## Paso 6: Métricas a mirar (para saber si funciona)
 - Usuarios registrados por día, usuarios activos por semana
 - Visitas → registros (meta: >10%), bounce en la landing
 - **Dashboard de métricas:** entrá a https://calculararca.duckdns.org/admin.html con la ADMIN_KEY → KPIs, visitas por día y origen de visitas
 - **Origen de visitas:** cada link compartido lleva ?utm_source= (whatsapp, instagram, link). Los botones de "Difundí ARCA Assistant" del dashboard ya lo agregan. Semanal: mirá qué canal trae más gente y duplicá ahí.
+- **Limpieza de datos de prueba:** endpoints admin `GET /api/admin/users`, `GET /api/admin/reviews`, `DELETE /api/admin/users/:id`, `DELETE /api/admin/reviews/:id` (todos con x-admin-key) — borran usuarios de prueba y sus reseñas/gastos/alertas sin tocar datos reales.
 - Semanal: anotar de dónde vino cada usuario (¿Reddit? ¿Google? ¿WhatsApp? ¿Instagram?)
 
 ## Calendario semanal sugerido (primer mes)
