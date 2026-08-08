@@ -359,6 +359,23 @@ async function deleteReview(id) {
   await query('DELETE FROM reviews WHERE id = $1', [id]);
 }
 
+// ===== ADMIN =====
+async function listUsers() {
+  return query('SELECT id, email, name, tier, email_alerts, created_at FROM users ORDER BY created_at DESC');
+}
+
+async function listReviewsAdmin() {
+  return query('SELECT r.id, r.name, r.rating, r.comment, r.created_at, r.user_id, u.email AS user_email FROM reviews r LEFT JOIN users u ON u.id = r.user_id ORDER BY r.created_at DESC');
+}
+
+async function deleteUserAndData(userId) {
+  await query('DELETE FROM expenses WHERE user_id = $1', [userId]);
+  await query('DELETE FROM alerts WHERE user_id = $1', [userId]);
+  await query('DELETE FROM reviews WHERE user_id = $1', [userId]);
+  await query('DELETE FROM rate_limits WHERE user_id = $1', [userId]);
+  await query('DELETE FROM users WHERE id = $1', [userId]);
+}
+
 async function getMetrics() {
   const today = todayArg();
   const weekStart = daysAgoArg(7);
@@ -453,4 +470,5 @@ module.exports = { init, save, close,
   createAlert, getUserAlerts,
   checkRateLimit, incrementRateLimit,
   incrementVisits, incrementSource, getVisitsSeries, getMetrics,
-  addReview, getReview, getReviews, deleteReview };
+  addReview, getReview, getReviews, deleteReview,
+  listUsers, listReviewsAdmin, deleteUserAndData };

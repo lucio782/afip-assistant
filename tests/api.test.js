@@ -204,9 +204,31 @@ async function api(method, path, body, auth) {
 
     r = await api('GET', '/api/metrics/diario?dias=14');
     check('metrics diario sin key 401', r.status === 401);
+
+    console.log('\n== ADMIN (opcional) ==');
+    r = await api('GET', '/api/admin/users');
+    check('admin sin key 401', r.status === 401);
+
+    const resA = await fetch(BASE + '/api/admin/users', { headers: { 'x-admin-key': adminKey } });
+    const jA = await resA.json();
+    check('admin users con key 200', resA.status === 200 && Array.isArray(jA) && jA.every(u => typeof u.email !== 'undefined'), JSON.stringify(jA).slice(0, 100));
+
+    const resR = await fetch(BASE + '/api/admin/reviews', { headers: { 'x-admin-key': adminKey } });
+    const jR = await resR.json();
+    check('admin reviews con key 200', resR.status === 200 && Array.isArray(jR), JSON.stringify(jR).slice(0, 100));
+
+    const delU = await fetch(BASE + '/api/admin/users/no-existe', { method: 'DELETE', headers: { 'x-admin-key': adminKey } });
+    check('admin borrar usuario inexistente 200 (idempotente)', delU.status === 200);
+
+    const delR = await fetch(BASE + '/api/admin/reviews/no-existe', { method: 'DELETE', headers: { 'x-admin-key': adminKey } });
+    check('admin borrar reseña inexistente 404', delR.status === 404);
   } else {
-    console.log('  SKIP (definí ADMIN_KEY para probar métricas)');
+    console.log('  SKIP (definí ADMIN_KEY para probar métricas/admin)');
   }
+
+  console.log('\n== MONETIZACION (público) ==');
+  r = await api('GET', '/api/monetizacion');
+  check('monetizacion 200 público', r.status === 200 && typeof r.json.donarUrl === 'string' && Array.isArray(r.json.fintech), r.text.slice(0, 100));
 
   console.log('\nRESULTADO: ' + passed + ' OK, ' + failed + ' FAIL');
   process.exit(failed ? 1 : 0);

@@ -92,4 +92,15 @@ module.exports = {
     pass: env('SMTP_PASS', ''),
     from: env('SMTP_FROM', env('APP_NAME', 'ARCA Assistant') + ' <no-reply@calculararca.duckdns.org>'),
   },
+
+  monetizacion: {
+    // Links de afiliados/donaciones. Vacíos = la sección no aparece.
+    donarUrl: env('DONAR_URL', ''),
+    contador: {
+      nombre: env('CONTADOR_NOMBRE', ''),
+      descripcion: env('CONTADOR_DESCRIPCION', ''),
+      url: env('CONTADOR_URL', ''),
+    },
+    fintech: envJson('FINTECH_REFS', []), // ej: [{"nombre":"Mercado Pago","url":"https://..."}]
+  },
 };

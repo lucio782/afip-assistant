@@ -76,6 +76,7 @@ app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/tools', require('./routes/tools'));
 app.use('/api/metrics', require('./routes/metrics'));
 app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api/news', require('./routes/news'));
 
 app.use((err, req, res, next) => {
@@ -83,8 +84,17 @@ app.use((err, req, res, next) => {
   res.status(err && err.statusCode ? err.statusCode : 500).json({ error: 'Error interno del servidor' });
 });
 
-app.get('/api/status', (req, res) => {
+// Config pública de monetización (links de afiliados/donaciones activados por env vars)
+app.get('/api/monetizacion', (req, res) => {
+  const m = config.monetizacion;
   res.json({
+    donarUrl: m.donarUrl,
+    contador: m.contador && m.contador.nombre ? m.contador : null,
+    fintech: Array.isArray(m.fintech) ? m.fintech : [],
+  });
+});
+
+app.get('/api/status', (req, res) => {  res.json({
     ok: true, name: config.app.name, version: config.app.version,
     mode: process.env.DATABASE_URL ? 'produccion' : 'desarrollo',
     uptime: process.uptime(),
@@ -93,7 +103,8 @@ app.get('/api/status', (req, res) => {
       cotizaciones: '/api/cotizaciones', gastos: '/api/gastos',
       sueldos: '/api/sueldos', pagos: '/api/payments',
       export: '/api/export', alerts: '/api/alerts', tools: '/api/tools',
-      news: '/api/news', reviews: '/api/reviews',
+      news: '/api/news', reviews: '/api/reviews', admin: '/api/admin',
+      monetizacion: '/api/monetizacion',
     },
   });
 });

@@ -320,6 +320,10 @@ footer .brand{font-weight:700;color:var(--text);font-size:.85rem;margin-bottom:4
       <button class="btn btn-outline btn-sm" onclick="openInstagram()">👤 Seguir mi Instagram</button>
     </div>
   </div>
+  <div class="card hidden" id="monetizacionCard">
+    <h2>💛 Ayudanos a seguir gratis</h2>
+    <div id="monetizacionBody" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
 </section>
 
 <!-- ===== MONOTRIBUTO ===== -->
@@ -1146,6 +1150,31 @@ async function loadGuia(tipo) {
   } catch {}
 }
 
+// ===== MONETIZACIÓN (donaciones / contador recomendado / referidos fintech) =====
+async function renderMonetizacion() {
+  try {
+    const r = await fetch('/api/monetizacion');
+    if (!r.ok) return;
+    const m = await r.json();
+    let html = '';
+    if (m.donarUrl) {
+      html += '<div><p style="font-size:.8rem;color:var(--text2)">Todo es gratis y sin límites. Si te sirve, podés invitarnos un café y nos ayudás a mantener el servidor y seguir sumando herramientas.</p><a class="btn btn-outline btn-sm" style="margin-top:8px" href="' + m.donarUrl + '" target="_blank" rel="noopener">☕ Invitar un café</a></div>';
+    }
+    if (m.contador) {
+      html += '<div><h3 style="font-size:.9rem;margin-bottom:4px">👨‍💼 ¿Necesitás un contador?</h3><p style="font-size:.8rem;color:var(--text2)">' + escapeHtml(m.contador.descripcion) + '</p><a class="btn btn-outline btn-sm" style="margin-top:8px" href="' + m.contador.url + '" target="_blank" rel="noopener">Contactar a ' + escapeHtml(m.contador.nombre) + '</a></div>';
+    }
+    if (m.fintech.length) {
+      html += '<div><h3 style="font-size:.9rem;margin-bottom:6px">💳 Abrí tu cuenta y ambos ganamos</h3><div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        m.fintech.map(f => '<a class="btn btn-outline btn-sm" href="' + f.url + '" target="_blank" rel="noopener">' + escapeHtml(f.nombre) + '</a>').join('') +
+        '</div></div>';
+    }
+    if (html) {
+      $('monetizacionBody').innerHTML = html;
+      $('monetizacionCard').classList.remove('hidden');
+    }
+  } catch {}
+}
+
 // ===== INIT =====
 function initApp() {
   hideAuth();
@@ -1158,6 +1187,7 @@ function initApp() {
   loadAlertas();
   loadEmailAlertsStatus();
   initHerramientas();
+  renderMonetizacion();
   switchTab('dashboard');
 }
 
