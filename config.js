@@ -21,7 +21,7 @@ function envJson(name, def) {
 module.exports = {
   app: {
     name: env('APP_NAME', 'ARCA Assistant'),
-    version: env('APP_VERSION', '2.1.0'),
+    version: env('APP_VERSION', '2.2.0'),
     url: env('APP_URL', 'https://calculararca.duckdns.org'),
     port: envNum('PORT', 3000),
     host: env('HOST', '0.0.0.0'),
