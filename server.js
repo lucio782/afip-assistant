@@ -170,7 +170,7 @@ database.init().then(() => {
     console.log(`${config.app.name} v${config.app.version} corriendo en http://localhost:${PORT}`);
     console.log(`Modo: ${process.env.DATABASE_URL ? 'produccion (PostgreSQL)' : 'desarrollo (SQLite)'}`);
     console.log(`MP: ${process.env.MP_ACCESS_TOKEN ? 'real' : 'simulado'}`);
-    console.log(`Email: ${mailer.isConfigured() ? 'configurado' : 'desactivado (sin SMTP)'}`);
+    console.log(`Email: ${mailer.isConfigured() ? 'configurado' : 'desactivado'}`);
   });
 }).catch(err => {
   console.error('Error al iniciar:', err);

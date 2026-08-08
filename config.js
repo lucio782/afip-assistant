@@ -84,13 +84,19 @@ module.exports = {
   },
 
   mail: {
-    // Recordatorios de vencimientos por email. Dejar HOST vacío desactiva el envío.
+    // Recordatorios de vencimientos por email.
+    // Dos modos (elegido con EMAIL_PROVIDER):
+    //  - 'smtp': SMTP clásico (SMTP_HOST/USER/PASS) — sirve en hosting que no bloquea puertos SMTP.
+    //  - 'brevo' | 'resend' | 'sendgrid': API por HTTPS (EMAIL_API_KEY) — funciona en Render free tier.
+    provider: env('EMAIL_PROVIDER', 'smtp'),
     host: env('SMTP_HOST', ''),
     port: envNum('SMTP_PORT', 587),
     secure: env('SMTP_SECURE', 'false') === 'true',
     user: env('SMTP_USER', ''),
     pass: env('SMTP_PASS', ''),
+    apiKey: env('EMAIL_API_KEY', ''),
     from: env('SMTP_FROM', env('APP_NAME', 'ARCA Assistant') + ' <no-reply@calculararca.duckdns.org>'),
+    timeoutMs: envNum('EMAIL_TIMEOUT_MS', 20000),
   },
 
   monetizacion: {
