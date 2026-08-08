@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const database = require('../services/database');
+const mailer = require('../services/mailer');
 const h = require('../services/asyncHandler');
 
 const router = express.Router();
@@ -37,6 +38,15 @@ router.delete('/reviews/:id', h(async (req, res) => {
   const review = await database.getReview(req.params.id);
   if (!review) return res.status(404).json({ error: 'Reseña no encontrada' });
   await database.deleteReview(review.id);
+  res.json({ ok: true });
+}));
+
+// POST /api/admin/test-email { to } — envía un email de prueba si SMTP está configurado
+router.post('/test-email', h(async (req, res) => {
+  if (!mailer.isConfigured()) return res.status(400).json({ error: 'SMTP no configurado' });
+  const to = String(req.body && req.body.to || '').trim();
+  if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return res.status(400).json({ error: 'Email inválido' });
+  await mailer.sendTestEmail(to);
   res.json({ ok: true });
 }));
 

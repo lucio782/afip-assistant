@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const database = require('../services/database');
 const { generateToken, requireAuth } = require('../services/auth');
+const mailer = require('../services/mailer');
 const h = require('../services/asyncHandler');
 const router = express.Router();
 
@@ -31,6 +32,8 @@ router.post('/register', authLimiter, h(async (req, res) => {
   const password_hash = await bcrypt.hash(password, 10);
   const user = await database.createUser({ email: normalized, password_hash, name: displayName });
   const token = generateToken(user);
+
+  mailer.sendWelcomeEmail(normalized, displayName).catch(() => {});
 
   res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, tier: user.tier } });
 }));

@@ -222,6 +222,10 @@ async function api(method, path, body, auth) {
 
     const delR = await fetch(BASE + '/api/admin/reviews/no-existe', { method: 'DELETE', headers: { 'x-admin-key': adminKey } });
     check('admin borrar reseña inexistente 404', delR.status === 404);
+
+    const te = await fetch(BASE + '/api/admin/test-email', { method: 'POST', headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ to: 'destino@test.com' }) });
+    const teText = await te.text();
+    check('test-email sin SMTP 400', te.status === 400, teText.slice(0, 80));
   } else {
     console.log('  SKIP (definí ADMIN_KEY para probar métricas/admin)');
   }
