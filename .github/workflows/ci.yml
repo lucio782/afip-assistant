@@ -20,6 +20,7 @@ jobs:
       - name: Levantar servidor y correr tests
         env:
           ADMIN_KEY: clave_test_ci
+          JWT_SECRET: clave_test_ci_secret
         run: |
           PORT=3000 node server.js > server.log 2>&1 &
           for i in $(seq 1 30); do
